@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:license_plate",
+ "creation": "2025-04-14 23:18:29.012347",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "modal",
+  "license_plate",
+  "column_break_qffj",
+  "belongs_to_vendor"
+ ],
+ "fields": [
+  {
+   "fieldname": "license_plate",
+   "fieldtype": "Data",
+   "label": "License Plate",
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_qffj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "modal",
+   "fieldtype": "Link",
+   "label": "Modal",
+   "options": "Car Modals"
+  },
+  {
+   "fieldname": "belongs_to_vendor",
+   "fieldtype": "Link",
+   "label": "Belongs To (Vendor)",
+   "options": "Vendors"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-14 23:21:15.202166",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Cars",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

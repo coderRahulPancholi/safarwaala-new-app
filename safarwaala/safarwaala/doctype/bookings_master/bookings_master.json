@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-13 19:34:18.607749",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "booking_type",
+  "column_break_bshv",
+  "booking",
+  "section_break_qlfo",
+  "customer"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "booking_type",
+   "fieldtype": "Link",
+   "label": "Booking Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_bshv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_qlfo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "booking",
+   "fieldtype": "Dynamic Link",
+   "label": "Booking",
+   "options": "booking_type"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-14 16:23:36.713622",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Bookings Master",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
