@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-18 14:25:38.184798",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ltqo",
+  "amended_from",
+  "section_break_nyzy",
+  "booking_type",
+  "booking_id",
+  "column_break_kzdi",
+  "driver",
+  "car_modal",
+  "car",
+  "section_break_nlpq",
+  "from",
+  "departure_datetime",
+  "column_break_twik",
+  "to",
+  "return_datetime",
+  "section_break_qglh",
+  "start_km",
+  "column_break_pijg",
+  "end_km",
+  "section_break_kvqd",
+  "expenses"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ltqo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Duty Slips",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_nyzy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "booking_type",
+   "fieldtype": "Link",
+   "label": "Booking Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "booking_id",
+   "fieldtype": "Dynamic Link",
+   "label": "Booking Id",
+   "options": "booking_type"
+  },
+  {
+   "fieldname": "column_break_kzdi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "Drivers"
+  },
+  {
+   "fieldname": "section_break_kvqd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "expenses",
+   "fieldtype": "Table",
+   "label": "Expenses",
+   "options": "Trip Expenses Item"
+  },
+  {
+   "fieldname": "car_modal",
+   "fieldtype": "Link",
+   "label": "Car Modal",
+   "options": "Car Modals"
+  },
+  {
+   "fieldname": "car",
+   "fieldtype": "Link",
+   "label": "Car",
+   "options": "Cars"
+  },
+  {
+   "fieldname": "section_break_nlpq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "from",
+   "fieldtype": "Data",
+   "label": "From"
+  },
+  {
+   "fieldname": "departure_datetime",
+   "fieldtype": "Datetime",
+   "label": "Departure Date/Time"
+  },
+  {
+   "fieldname": "column_break_twik",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to",
+   "fieldtype": "Data",
+   "label": "To"
+  },
+  {
+   "fieldname": "return_datetime",
+   "fieldtype": "Datetime",
+   "label": "Return Date/Time"
+  },
+  {
+   "fieldname": "section_break_qglh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "start_km",
+   "fieldtype": "Int",
+   "label": "Start Km"
+  },
+  {
+   "fieldname": "column_break_pijg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "end_km",
+   "fieldtype": "Int",
+   "label": "End Km"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-04-22 23:12:52.235184",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Duty Slips",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

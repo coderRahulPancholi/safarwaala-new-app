@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:modal_name",
+ "autoname": "format:{modal_name}-({fuel_type})",
  "creation": "2025-04-14 17:02:37.182547",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,10 +9,17 @@
   "modal_name",
   "seating_capacity",
   "doors",
+  "column_break_zktg",
+  "fuel_type",
   "pricing_details_section",
   "per_km_rate",
+  "min_local_hour",
+  "local_hour_rate",
   "column_break_zrsz",
-  "min_km_day"
+  "min_km_day",
+  "local_km_rate",
+  "min_local_km",
+  "night_rate"
  ],
  "fields": [
   {
@@ -49,16 +56,52 @@
    "fieldname": "min_km_day",
    "fieldtype": "Int",
    "label": "Min Km Day"
+  },
+  {
+   "fieldname": "column_break_zktg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fuel_type",
+   "fieldtype": "Select",
+   "label": "Fuel Type",
+   "options": "Deisel\nPetrol\nCNG\nCNG & Petrol"
+  },
+  {
+   "fieldname": "min_local_hour",
+   "fieldtype": "Int",
+   "label": "Min Local Hour",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "local_hour_rate",
+   "fieldtype": "Currency",
+   "label": "Local Hour Rate"
+  },
+  {
+   "fieldname": "local_km_rate",
+   "fieldtype": "Currency",
+   "label": "Local Km Rate"
+  },
+  {
+   "fieldname": "night_rate",
+   "fieldtype": "Currency",
+   "label": "Night Rate"
+  },
+  {
+   "fieldname": "min_local_km",
+   "fieldtype": "Int",
+   "label": "Min Local Km"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-14 23:15:56.657657",
+ "modified": "2025-04-15 11:14:36.836707",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "Car Modals",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

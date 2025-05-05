@@ -23,15 +23,36 @@
   "column_break_oqiu",
   "to",
   "return_datetime",
+  "pricing_details_section",
+  "per_km_rate",
+  "min_km_per_day",
+  "column_break_ecvw",
+  "night_rate",
+  "days",
   "running_details_section",
   "start_km",
   "end_km",
-  "column_break_frew",
   "diffrence_km",
-  "pricing_details_section",
-  "per_km_rate",
-  "column_break_ecvw",
-  "km_amount"
+  "min_km",
+  "column_break_frew",
+  "nights",
+  "night_charges",
+  "chargeable_km",
+  "km_amount",
+  "total",
+  "section_break_aliv",
+  "trip_expenses",
+  "expense_total",
+  "net_total",
+  "tax_and_charges_section",
+  "tax_and_charges",
+  "section_break_bpxs",
+  "column_break_klhq",
+  "column_break_sqsf",
+  "tax_total",
+  "gross_total",
+  "discount",
+  "grand_total"
  ],
  "fields": [
   {
@@ -172,12 +193,119 @@
    "fieldname": "km_amount",
    "fieldtype": "Currency",
    "label": "Km Amount"
+  },
+  {
+   "fieldname": "tax_and_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Tax And Charges"
+  },
+  {
+   "fieldname": "tax_and_charges",
+   "fieldtype": "Table",
+   "label": "Tax And Charges",
+   "options": "Tax and Charges"
+  },
+  {
+   "fieldname": "section_break_bpxs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_klhq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_sqsf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_total",
+   "fieldtype": "Currency",
+   "label": "Tax Total"
+  },
+  {
+   "fetch_from": "car_modal.night_rate",
+   "fieldname": "night_rate",
+   "fieldtype": "Currency",
+   "label": "Night Rate",
+   "non_negative": 1
+  },
+  {
+   "fetch_from": "car_modal.min_km_day",
+   "fieldname": "min_km_per_day",
+   "fieldtype": "Int",
+   "label": "Min Km Per Day",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "days",
+   "fieldtype": "Int",
+   "label": "Days"
+  },
+  {
+   "fieldname": "nights",
+   "fieldtype": "Int",
+   "label": "Nights"
+  },
+  {
+   "fieldname": "night_charges",
+   "fieldtype": "Int",
+   "label": "Night Charges"
+  },
+  {
+   "fieldname": "min_km",
+   "fieldtype": "Int",
+   "label": "Min Km"
+  },
+  {
+   "fieldname": "chargeable_km",
+   "fieldtype": "Int",
+   "label": "Chargeable Km"
+  },
+  {
+   "fieldname": "section_break_aliv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "trip_expenses",
+   "fieldtype": "Table",
+   "label": "Trip Expenses",
+   "options": "Trip Expenses Item"
+  },
+  {
+   "fieldname": "expense_total",
+   "fieldtype": "Currency",
+   "label": "Expense Total"
+  },
+  {
+   "fieldname": "net_total",
+   "fieldtype": "Currency",
+   "label": "Net Total"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "label": "Total"
+  },
+  {
+   "fieldname": "gross_total",
+   "fieldtype": "Currency",
+   "label": "Gross Total"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Currency",
+   "label": "Discount"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-14 23:49:47.038298",
+ "modified": "2025-04-25 10:38:49.618611",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "OutStation Bookings",
