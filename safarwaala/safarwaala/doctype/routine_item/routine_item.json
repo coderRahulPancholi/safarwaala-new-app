@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-16 14:22:51.384763",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "for_date",
+  "section_break_niwd",
+  "car_modal",
+  "car",
+  "column_break_zszi",
+  "assigned_to",
+  "driver",
+  "section_break_aips",
+  "column_break_xjuc",
+  "is_absent",
+  "is_action_taken",
+  "column_break_kith",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "for_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "For Date"
+  },
+  {
+   "fieldname": "section_break_niwd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "car",
+   "fieldtype": "Link",
+   "label": "Car",
+   "options": "Cars"
+  },
+  {
+   "fieldname": "column_break_zszi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Assigned To",
+   "options": "Vendors"
+  },
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "Drivers"
+  },
+  {
+   "fieldname": "section_break_aips",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount"
+  },
+  {
+   "fieldname": "column_break_kith",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xjuc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_absent",
+   "fieldtype": "Check",
+   "label": "Is Absent"
+  },
+  {
+   "fieldname": "car_modal",
+   "fieldtype": "Link",
+   "label": "Car Modal",
+   "options": "Car Modals"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_action_taken",
+   "fieldtype": "Check",
+   "label": "Is Action Taken"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-16 14:46:24.232701",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Routine Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

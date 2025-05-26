@@ -19,11 +19,11 @@
   "driver",
   "basic_details_section",
   "start_from",
-  "avarage_distance",
   "departure_datetime",
-  "return_datetime",
+  "avarage_distance",
   "column_break_oqiu",
   "to",
+  "return_datetime",
   "pricing_details_section",
   "per_km_rate",
   "min_km_per_day",
@@ -60,29 +60,16 @@
  ],
  "fields": [
   {
-   "fieldname": "departure_datetime",
-   "fieldtype": "Datetime",
-   "label": "Departure Date/Time"
+   "default": "OS-.MM.-.YY.-.###",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "OS-.MM.-.YY.-.###"
   },
   {
-   "fieldname": "column_break_oqiu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "to",
-   "fieldtype": "Link",
-   "label": "To",
-   "options": "City Master"
-  },
-  {
-   "fieldname": "return_datetime",
-   "fieldtype": "Datetime",
-   "label": "Return Date/Time"
-  },
-  {
-   "fieldname": "basic_details_section",
+   "fieldname": "section_break_lfiv",
    "fieldtype": "Section Break",
-   "label": "Basic Details"
+   "label": "Belongs To"
   },
   {
    "fieldname": "customer",
@@ -91,9 +78,21 @@
    "options": "Customer"
   },
   {
-   "fieldname": "section_break_lfiv",
-   "fieldtype": "Section Break",
-   "label": "Belongs To"
+   "fetch_from": "customer.name1",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fetch_from": "customer.mobile",
+   "fieldname": "customer_mobile",
+   "fieldtype": "Data",
+   "label": "Customer Mobile"
+  },
+  {
+   "fieldname": "alternative_mobile",
+   "fieldtype": "Data",
+   "label": "Alternative Mobile"
   },
   {
    "fieldname": "column_break_xhbr",
@@ -118,6 +117,49 @@
    "options": "Cars"
   },
   {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "Drivers"
+  },
+  {
+   "fieldname": "basic_details_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Details"
+  },
+  {
+   "fieldname": "start_from",
+   "fieldtype": "Link",
+   "label": "From",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "avarage_distance",
+   "fieldtype": "Float",
+   "label": "Avarage Distance (Km)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "departure_datetime",
+   "fieldtype": "Datetime",
+   "label": "Departure Date/Time"
+  },
+  {
+   "fieldname": "return_datetime",
+   "fieldtype": "Datetime",
+   "label": "Return Date/Time"
+  },
+  {
+   "fieldname": "column_break_oqiu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to",
+   "fieldtype": "Link",
+   "label": "To",
+   "options": "City Master"
+  },
+  {
    "fieldname": "pricing_details_section",
    "fieldtype": "Section Break",
    "label": "Pricing Details"
@@ -131,38 +173,27 @@
    "non_negative": 1
   },
   {
+   "fetch_from": "car_modal.min_km_day",
+   "fieldname": "min_km_per_day",
+   "fieldtype": "Int",
+   "label": "Min Km Per Day",
+   "non_negative": 1
+  },
+  {
    "fieldname": "column_break_ecvw",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "driver",
-   "fieldtype": "Link",
-   "label": "Driver",
-   "options": "Drivers"
+   "fetch_from": "car_modal.night_rate",
+   "fieldname": "night_rate",
+   "fieldtype": "Currency",
+   "label": "Night Rate",
+   "non_negative": 1
   },
   {
-   "fetch_from": "customer.name1",
-   "fieldname": "customer_name",
-   "fieldtype": "Data",
-   "label": "Customer Name"
-  },
-  {
-   "fetch_from": "customer.mobile",
-   "fieldname": "customer_mobile",
-   "fieldtype": "Data",
-   "label": "Customer Mobile"
-  },
-  {
-   "fieldname": "alternative_mobile",
-   "fieldtype": "Data",
-   "label": "Alternative Mobile"
-  },
-  {
-   "default": "OS-.MM.-.YY.-.###",
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Naming Series",
-   "options": "OS-.MM.-.YY.-.###"
+   "fieldname": "days",
+   "fieldtype": "Int",
+   "label": "Days"
   },
   {
    "fieldname": "running_details_section",
@@ -176,10 +207,6 @@
    "non_negative": 1
   },
   {
-   "fieldname": "column_break_frew",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "end_km",
    "fieldtype": "Int",
    "label": "End Km"
@@ -190,56 +217,13 @@
    "label": "Diffrence Km"
   },
   {
-   "fieldname": "km_amount",
-   "fieldtype": "Currency",
-   "label": "Km Amount"
-  },
-  {
-   "fieldname": "tax_and_charges_section",
-   "fieldtype": "Section Break",
-   "label": "Tax And Charges"
-  },
-  {
-   "fieldname": "tax_and_charges",
-   "fieldtype": "Table",
-   "label": "Tax And Charges",
-   "options": "Tax and Charges"
-  },
-  {
-   "fieldname": "section_break_bpxs",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_klhq",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_sqsf",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "tax_total",
-   "fieldtype": "Currency",
-   "label": "Tax Total"
-  },
-  {
-   "fetch_from": "car_modal.night_rate",
-   "fieldname": "night_rate",
-   "fieldtype": "Currency",
-   "label": "Night Rate",
-   "non_negative": 1
-  },
-  {
-   "fetch_from": "car_modal.min_km_day",
-   "fieldname": "min_km_per_day",
+   "fieldname": "min_km",
    "fieldtype": "Int",
-   "label": "Min Km Per Day",
-   "non_negative": 1
+   "label": "Min Km"
   },
   {
-   "fieldname": "days",
-   "fieldtype": "Int",
-   "label": "Days"
+   "fieldname": "column_break_frew",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "nights",
@@ -252,14 +236,19 @@
    "label": "Night Charges"
   },
   {
-   "fieldname": "min_km",
-   "fieldtype": "Int",
-   "label": "Min Km"
-  },
-  {
    "fieldname": "chargeable_km",
    "fieldtype": "Int",
    "label": "Chargeable Km"
+  },
+  {
+   "fieldname": "km_amount",
+   "fieldtype": "Currency",
+   "label": "Km Amount"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "label": "Total"
   },
   {
    "fieldname": "section_break_aliv",
@@ -282,9 +271,45 @@
    "label": "Net Total"
   },
   {
-   "fieldname": "total",
+   "fieldname": "tax_and_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Tax And Charges"
+  },
+  {
+   "fieldname": "tax_and_charges",
+   "fieldtype": "Table",
+   "label": "Tax And Charges",
+   "options": "Tax and Charges"
+  },
+  {
+   "fieldname": "section_break_bpxs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_klhq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "booking_status",
+   "fieldtype": "Select",
+   "label": "Booking Status",
+   "options": "Pending\nConfirmed\nOngoing\nCompleted\nCancelled\nInvoiced"
+  },
+  {
+   "fieldname": "invoice",
+   "fieldtype": "Link",
+   "label": "Invoice",
+   "options": "Customer Invoice"
+  },
+  {
+   "fieldname": "column_break_sqsf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_total",
    "fieldtype": "Currency",
-   "label": "Total"
+   "label": "Tax Total"
   },
   {
    "fieldname": "gross_total",
@@ -302,18 +327,6 @@
    "label": "Grand Total"
   },
   {
-   "fieldname": "start_from",
-   "fieldtype": "Link",
-   "label": "From",
-   "options": "City Master"
-  },
-  {
-   "fieldname": "avarage_distance",
-   "fieldtype": "Float",
-   "label": "Avarage Distance (Km)",
-   "precision": "2"
-  },
-  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -322,28 +335,15 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "invoice",
-   "fieldtype": "Link",
-   "label": "Invoice",
-   "options": "Customer Invoice"
-  },
-  {
-   "default": "Pending",
-   "fieldname": "booking_status",
-   "fieldtype": "Select",
-   "label": "Booking Status",
-   "options": "Pending\nConfirmed\nOngoing\nCompleted\nCancelled\nInvoiced"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-16 11:58:32.073060",
+ "modified": "2025-05-16 14:15:06.557802",
  "modified_by": "Administrator",
- "module": "Safarwaala",
+ "module": "Booking Types",
  "name": "OutStation Bookings",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",

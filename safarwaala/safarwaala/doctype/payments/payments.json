@@ -1,0 +1,101 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-16 17:17:11.984820",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_rvqj",
+  "amended_from",
+  "section_break_wuuj",
+  "invoice_type",
+  "column_break_cvwu",
+  "invoice_number",
+  "section_break_lzlc",
+  "column_break_pbvb",
+  "column_break_eudr",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_rvqj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Payments",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_wuuj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "invoice_type",
+   "fieldtype": "Link",
+   "label": "Invoice Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_cvwu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Dynamic Link",
+   "label": "Invoice Number",
+   "options": "invoice_type"
+  },
+  {
+   "fieldname": "section_break_lzlc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_pbvb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_eudr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "precision": "2"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-05-16 17:23:26.432814",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Payments",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
