@@ -153,7 +153,39 @@ def create_drivers(vendors, count=10):
         print(f"  Created Driver: {doc.name}")
     frappe.db.commit()
 
+CITIES = ["Mumbai", "Pune", "Delhi", "Bangalore", "Jaipur", "Udaipur", "Agra", "Ahmedabad", "Surat", "Goa"]
+
+def create_cities():
+    print("Creating Cities...")
+    
+    # Reload doctype to apply autoname change
+    frappe.reload_doc("safarwaala", "doctype", "City Master")
+    
+    # OPTIONAL: Clear old cities to avoid duplicates/confusion if they had hash names
+    # frappe.db.delete("City Master") 
+    
+    created_cities = []
+    for city in CITIES:
+        # Check if city exists by name (which is now properly the primary key or field)
+        if not frappe.db.exists("City Master", city):
+            try:
+                doc = frappe.get_doc({
+                    "doctype": "City Master",
+                    "city_name": city
+                    # Name will be auto-set to city by autoname rule
+                })
+                doc.insert(ignore_permissions=True)
+                print(f"  Created City: {doc.name}")
+                created_cities.append(doc.name)
+            except Exception as e:
+                print(f"  Error creating {city}: {e}")
+        else:
+             created_cities.append(city)
+    frappe.db.commit()
+    return created_cities
+
 def run():
+    create_cities()
     vendors = create_vendors()
     modals = create_car_modals()
     create_cars(vendors, modals, count=10)
