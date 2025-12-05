@@ -2,6 +2,40 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("OutStation Bookings", {
+  onload(frm) {
+    // Set dynamic filter for Car
+    frm.set_query('car', function() {
+        var filters = {};
+        if (frm.doc.assigned_to) {
+            filters.belongs_to_vendor = frm.doc.assigned_to;
+        }
+        if (frm.doc.car_modal) {
+            filters.modal = frm.doc.car_modal;
+        }
+        return { filters: filters };
+    });
+
+    // Set dynamic filter for Driver
+    frm.set_query('driver', function() {
+        var filters = {};
+        if (frm.doc.assigned_to) {
+            filters.owner_vendor = frm.doc.assigned_to;
+        }
+        return { filters: filters };
+    });
+  },
+
+  assigned_to(frm) {
+    // Reset dependent fields
+    frm.set_value('car', '');
+    frm.set_value('driver', '');
+  },
+
+  car_modal(frm) {
+     // Reset dependent field
+     frm.set_value('car', '');
+  },
+
   refresh(frm) {
     let query_args = {
       filters: { docstatus: ["!=", 2], booking_id: frm.doc.name },
