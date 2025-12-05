@@ -1,0 +1,62 @@
+{
+    "app": "safarwaala",
+    "charts": [],
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"Vendor Dashboard\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Driver Total Bookings\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Driver Pending Payments\",\"col\":4}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"All Cars\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"All Drivers\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"All Bookings\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"All Payments\",\"col\":3}}]",
+    "creation": "2025-12-06 00:00:00.000000",
+    "docstatus": 0,
+    "doctype": "Workspace",
+    "for_user": "",
+    "icon": "building",
+    "idx": 0,
+    "indicator_color": "blue",
+    "is_standard": 1,
+    "label": "Vendor Workspace",
+    "links": [],
+    "modified": "2025-12-06 00:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Safarwaala",
+    "name": "Vendor Workspace",
+    "number_cards": [
+        {
+            "number_card": "Driver Total Bookings"
+        },
+        {
+            "number_card": "Driver Pending Payments"
+        }
+    ],
+    "owner": "Administrator",
+    "parent_page": "",
+    "public": 1,
+    "roles": [
+        {
+            "role": "Vendor"
+        },
+        {
+            "role": "System Manager"
+        }
+    ],
+    "sequence_id": 2.0,
+    "shortcuts": [
+        {
+            "label": "Cars",
+            "link_to": "Cars",
+            "type": "DocType"
+        },
+        {
+            "label": "Drivers",
+            "link_to": "Drivers",
+            "type": "DocType"
+        },
+        {
+            "label": "Bookings",
+            "link_to": "OutStation Bookings",
+            "type": "DocType"
+        },
+        {
+            "label": "Payments",
+            "link_to": "Driver Payment",
+            "type": "DocType"
+        }
+    ],
+    "title": "Vendor Workspace"
+}

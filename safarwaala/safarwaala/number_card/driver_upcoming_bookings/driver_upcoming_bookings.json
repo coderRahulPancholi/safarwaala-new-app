@@ -1,0 +1,23 @@
+{
+    "aggregate_function_based_on": "",
+    "color": "#1FBC9C",
+    "creation": "2024-05-18 20:00:00.000000",
+    "docstatus": 0,
+    "doctype": "Number Card",
+    "document_type": "OutStation Bookings",
+    "dynamic_filters_json": "[[\"departure_datetime\", \">=\", \"Today\"]]",
+    "filters_json": "[[\"OutStation Bookings\",\"booking_status\",\"in\",[\"Confirmed\",\"Pending\"]]]",
+    "function": "Count",
+    "idx": 0,
+    "is_public": 1,
+    "is_standard": 1,
+    "label": "Upcoming Bookings",
+    "modified": "2024-05-18 20:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Safarwaala",
+    "name": "Driver Upcoming Bookings",
+    "owner": "Administrator",
+    "show_percentage_stats": 1,
+    "stats_time_interval": "Monthly",
+    "type": "Document Type"
+}

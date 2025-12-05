@@ -1,96 +1,124 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "autoname": "naming_series:",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "booking_link",
-        "driver",
-        "vendor",
-        "amount",
-        "payment_date",
-        "details"
-    ],
-    "fields": [
-        {
-            "fieldname": "booking_type",
-            "fieldtype": "Link",
-            "label": "Booking Type",
-            "options": "DocType",
-            "reqd": 1
-        },
-        {
-            "fieldname": "booking_id",
-            "fieldtype": "Dynamic Link",
-            "label": "Booking Id",
-            "options": "booking_type",
-            "reqd": 1
-        },
-        {
-            "fieldname": "duty_slip_link",
-            "fieldtype": "Link",
-            "label": "Duty Slip Reference",
-            "options": "Duty Slips"
-        },
-        {
-            "fieldname": "driver",
-            "fieldtype": "Link",
-            "label": "Driver",
-            "options": "Drivers",
-            "read_only": 1
-        },
-        {
-            "fieldname": "vendor",
-            "fieldtype": "Link",
-            "label": "Vendor",
-            "options": "Vendors",
-            "read_only": 1
-        },
-        {
-            "fieldname": "amount",
-            "fieldtype": "Currency",
-            "label": "Payment Amount",
-            "reqd": 1
-        },
-        {
-            "default": "Today",
-            "fieldname": "payment_date",
-            "fieldtype": "Date",
-            "label": "Payment Date",
-            "reqd": 1
-        },
-        {
-            "fieldname": "details",
-            "fieldtype": "Small Text",
-            "label": "Payment Details/Remarks"
-        },
-        {
-            "default": "DP-.YYYY.-.#####",
-            "fieldname": "naming_series",
-            "fieldtype": "Select",
-            "label": "Series",
-            "options": "DP-.YYYY.-.#####"
-        }
-    ],
-    "is_submittable": 1,
-    "module": "Safarwaala",
-    "name": "Driver Payment",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "read": 1,
-            "write": 1,
-            "role": "System Manager"
-        },
-        {
-            "read": 1,
-            "role": "Vendor"
-        },
-        {
-            "read": 1,
-            "role": "Driver"
-        }
-    ]
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-12-06 00:16:49.160651",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "driver",
+  "vendor",
+  "amount",
+  "payment_date",
+  "details",
+  "booking_type",
+  "booking_id",
+  "duty_slip_link",
+  "naming_series",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "booking_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Booking Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "booking_id",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Booking Id",
+   "options": "booking_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "duty_slip_link",
+   "fieldtype": "Link",
+   "label": "Duty Slip Reference",
+   "options": "Duty Slips"
+  },
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "Drivers",
+   "read_only": 1
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "Vendors",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Payment Amount",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payment Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "Small Text",
+   "label": "Payment Details/Remarks"
+  },
+  {
+   "default": "DP-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "DP-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Driver Payment",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-12-06 00:40:17.590302",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Driver Payment",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Vendor"
+  },
+  {
+   "read": 1,
+   "role": "Driver"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }
