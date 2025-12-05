@@ -150,3 +150,47 @@ def has_driver_permission(doc, user):
             return True
 
     return False
+
+def get_driver_payment_condition(user):
+    if not user:
+        user = frappe.session.user
+
+    if "System Manager" in frappe.get_roles(user) or "Administrator" in frappe.get_roles(user):
+        return ""
+
+    conditions = []
+    
+    if "Vendor" in frappe.get_roles(user):
+        vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+        if vendor:
+            conditions.append(f"`vendor` = '{vendor}'")
+
+    if "Driver" in frappe.get_roles(user):
+        driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
+        if driver:
+            conditions.append(f"`driver` = '{driver}'")
+
+    if not conditions:
+        return "1=0"
+        
+    return "(" + " OR ".join(conditions) + ")"
+
+def has_driver_payment_permission(doc, user):
+    if not user:
+        user = frappe.session.user
+
+    if "System Manager" in frappe.get_roles(user) or "Administrator" in frappe.get_roles(user):
+        return True
+
+    if "Vendor" in frappe.get_roles(user):
+        vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+        if vendor and doc.vendor == vendor:
+            return True
+            
+    if "Driver" in frappe.get_roles(user):
+        driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
+        if driver and doc.driver == driver:
+            return True
+
+    return False
+

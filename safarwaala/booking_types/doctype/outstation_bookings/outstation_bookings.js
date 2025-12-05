@@ -61,6 +61,14 @@ frappe.ui.form.on("OutStation Bookings", {
           // Wait for all duty slip docs to be fetched
           for (const name of selections) {
             const doc = await frappe.db.get_doc("Duty Slips", name);
+            
+            // Update Booking with Actuals from Duty Slip
+            if(doc.start_km) frm.set_value('start_km', doc.start_km);
+            if(doc.end_km) frm.set_value('end_km', doc.end_km);
+            if(doc.departure_datetime) frm.set_value('departure_datetime', doc.departure_datetime);
+            if(doc.return_datetime) frm.set_value('return_datetime', doc.return_datetime);
+
+            // Fetch Expenses
             (doc.expenses || []).forEach((expense) => {
               frm.add_child("trip_expenses", {
                 label: expense.label,
@@ -73,7 +81,7 @@ frappe.ui.form.on("OutStation Bookings", {
 
           frm.refresh_field("trip_expenses");
           d.dialog.hide();
-          frappe.msgprint(__("Expenses fetched from Duty Slips."));
+          frappe.msgprint(__("Details fetched from Duty Slips."));
         },
       });
       
@@ -88,10 +96,7 @@ frappe.ui.form.on("OutStation Bookings", {
             {
               booking_type: frm.doc.doctype,
               booking_id: frm.doc.name,
-              net_amount: frm.doc.total,
-              tax_and_services: frm.doc.tax_total,
-              total: frm.doc.total + frm.doc.tax_total,
-              payable_amount: frm.doc.total + frm.doc.tax_total,
+              amount: frm.doc.total + frm.doc.tax_total, // Use 'amount' as per schema
             },
           ],
         });
@@ -105,6 +110,27 @@ frappe.ui.form.on("OutStation Bookings", {
           booking_type: frm.doc.doctype,
           booking_id: frm.doc.name,
           driver: frm.doc.driver,
+          car: frm.doc.car,
+          car_modal: frm.doc.car_modal,
+          from: frm.doc.start_from, 
+          to: frm.doc.to,
+          departure_datetime: frm.doc.departure_datetime,
+          return_datetime: frm.doc.return_datetime,
+        });
+      },
+      __("Create")
+    );
+
+    frm.add_custom_button(
+      __("Make Driver Payment"),
+      function () {
+        frappe.new_doc("Driver Payment", {
+          booking_type: frm.doc.doctype, 
+          booking_id: frm.doc.name,
+          driver: frm.doc.driver,
+          vendor: frm.doc.assigned_to,
+          amount: frm.doc.expense_total || 0,
+          details: "Allowance + Expenses for " + frm.doc.name
         });
       },
       __("Create")
