@@ -26,6 +26,17 @@ frappe.ui.form.on("Duty Slips", {
                     details: "Payment for Duty Slip: " + frm.doc.name
                 });
             }, __("Create"));
+
+            frm.add_custom_button(__("Create Expense Log"), function() {
+                frappe.new_doc("Vehicle Expense Log", {
+                    booking_type: frm.doc.booking_type,
+                    booking_ref: frm.doc.booking_id, // Dynamic Link
+                    booking_type: frm.doc.booking_type, // Ensure both are passed if needed by link (but booking_type field handles it)
+                    driver: frm.doc.driver,
+                    car: frm.doc.car,
+                    expense_date: frappe.datetime.get_today()
+                });
+            }, __("Create"));
         }
 	},
 });

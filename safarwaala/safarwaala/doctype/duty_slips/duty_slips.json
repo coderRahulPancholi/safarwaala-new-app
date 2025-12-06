@@ -76,7 +76,8 @@
    "fieldname": "expenses",
    "fieldtype": "Table",
    "label": "Expenses",
-   "options": "Trip Expenses Item"
+   "options": "Trip Expenses Item",
+   "hidden": 1
   },
   {
    "fieldname": "car_modal",

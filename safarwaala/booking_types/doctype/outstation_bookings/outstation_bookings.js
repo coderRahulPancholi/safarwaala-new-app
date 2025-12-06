@@ -68,23 +68,40 @@ frappe.ui.form.on("OutStation Bookings", {
             if(doc.departure_datetime) frm.set_value('departure_datetime', doc.departure_datetime);
             if(doc.return_datetime) frm.set_value('return_datetime', doc.return_datetime);
 
-            // Fetch Expenses
-            (doc.expenses || []).forEach((expense) => {
-              frm.add_child("trip_expenses", {
-                label: expense.label,
-                amount: expense.amount,
-              });
-            });
+            // Expenses fetching removed as per new logic (Vehicle Expense Log used instead)
           }
 
-          // Clear existing and set new rows in child table
-
-          frm.refresh_field("trip_expenses");
           d.dialog.hide();
           frappe.msgprint(__("Details fetched from Duty Slips."));
         },
       });
       
+    });
+
+    frm.add_custom_button(__("Fetch Billable Expenses"), function() {
+        frappe.call({
+            method: "safarwaala.booking_types.doctype.outstation_bookings.outstation_bookings.get_billable_expenses_total",
+            args: {
+                booking_id: frm.doc.name
+            },
+            callback: function(r) {
+                if (r.message != null) {
+                    frm.set_value("expense_total", r.message);
+                    
+                     // Recalculate Totals
+                    if(frm.doc.night_charges !== undefined && frm.doc.km_amount !== undefined) {
+                         frm.set_value("total", frm.doc.night_charges + frm.doc.km_amount);
+                    }
+                    // Calculate net total with the new expense total
+                    frm.set_value("net_total", frm.doc.total + r.message);
+                    // Recalculate Gross and Grand
+                    frm.set_value("gross_total", frm.doc.net_total + frm.doc.tax_total);
+                    frm.set_value("grand_total", frm.doc.gross_total - frm.doc.discount);
+                    
+                    frappe.msgprint(__("Expenses fetched and totals updated."));
+                }
+            }
+        });
     });
 
     frm.add_custom_button(
@@ -168,7 +185,7 @@ frappe.ui.form.on("OutStation Bookings", {
     calculateNetAmount(frm);
   },
   before_save(frm) {
-    calculate_expense_total(frm);
+     // calcualte_expense_total(frm); // Legacy function relying on trip_expenses table
   },
 });
 
