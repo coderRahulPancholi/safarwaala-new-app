@@ -81,3 +81,33 @@ def get_booking_details(doctype, name):
              details["car_modal_details"]["name"] = details["car_modal_details"].pop("modal_name")
 
     return details
+
+@frappe.whitelist()
+def log_expense(expense_type, amount, car, paid_by="Driver", driver=None, booking_ref=None, booking_type=None, expense_date=None, receipt_image=None, is_billable=0):
+    """
+    Log a vehicle expense.
+    """
+    try:
+        # Auto-set billable for Toll/Parking if not explicitly provided
+        if not is_billable and expense_type in ["Toll", "Parking"]:
+            is_billable = 1
+
+        expense_doc = frappe.get_doc({
+            "doctype": "Vehicle Expense Log",
+            "expense_date": expense_date or frappe.utils.nowdate(),
+            "expense_type": expense_type,
+            "amount": amount,
+            "is_billable": is_billable,
+            "car": car,
+            "driver": driver,
+            "booking_type": booking_type,
+            "booking_ref": booking_ref,
+            "paid_by": paid_by,
+            "receipt_image": receipt_image,
+            "status": "Pending" 
+        })
+        expense_doc.insert(ignore_permissions=True)
+        return {"success": True, "message": "Expense logged successfully", "data": expense_doc.name}
+    except Exception as e:
+        frappe.log_error(f"Failed to log expense: {str(e)}", "Vehicle Expense Log Error")
+        return {"success": False, "message": str(e)}
