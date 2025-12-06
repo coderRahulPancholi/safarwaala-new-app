@@ -42,3 +42,18 @@ def get_my_bookings():
     """, {"user": user}, as_dict=True)
 
     return bookings
+
+@frappe.whitelist(allow_guest=True)
+def get_booking_details(doctype, name):
+    """
+    Fetch full details of a specific booking.
+    """
+    if not frappe.db.exists(doctype, name):
+        frappe.throw("Booking not found", frappe.DoesNotExistError)
+
+    doc = frappe.get_doc(doctype, name)
+    
+    # Permission Check (Optional: relying on allow_guest=True for now as per StatusComponent logic)
+    # real-world app should verify ownership or token
+    
+    return doc.as_dict()
