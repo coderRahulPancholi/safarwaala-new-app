@@ -56,4 +56,28 @@ def get_booking_details(doctype, name):
     # Permission Check (Optional: relying on allow_guest=True for now as per StatusComponent logic)
     # real-world app should verify ownership or token
     
-    return doc.as_dict()
+    details = doc.as_dict()
+    
+    # Fetch Driver Details
+    if doc.driver:
+        # Drivers: name1 is the Name field, mobile is Mobile. No image field.
+        details["driver_details"] = frappe.db.get_value("Drivers", doc.driver, ["name1", "mobile"], as_dict=True)
+        # Rename name1 to name for frontend consistency if needed, or handle in frontend
+        if details["driver_details"] and "name1" in details["driver_details"]:
+             details["driver_details"]["name"] = details["driver_details"].pop("name1")
+        
+    # Fetch Car Details
+    if doc.car:
+        # Cars: license_plate. No image or color field.
+        details["car_details"] = frappe.db.get_value("Cars", doc.car, ["license_plate", "modal"], as_dict=True)
+        if details["car_details"]:
+             details["car_details"]["car_number"] = details["car_details"].get("license_plate")
+        
+    # Fetch Car Model Details
+    if doc.car_modal:
+        # Car Modals: modal_name. No image field.
+        details["car_modal_details"] = frappe.db.get_value("Car Modals", doc.car_modal, ["modal_name", "seating_capacity", "luggage_capacity"], as_dict=True)
+        if details["car_modal_details"] and "modal_name" in details["car_modal_details"]:
+             details["car_modal_details"]["name"] = details["car_modal_details"].pop("modal_name")
+
+    return details
