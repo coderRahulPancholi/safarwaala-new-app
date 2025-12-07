@@ -5,7 +5,22 @@ import frappe
 from frappe.model.document import Document
 
 
+from frappe.utils import flt
+
 class CustomerInvoice(Document):
+    def before_save(self):
+        self.calculate_totals()
+
+    def calculate_totals(self):
+        gross_total = 0.0
+        if self.invoice_item:
+            for item in self.invoice_item:
+                gross_total += flt(item.amount)
+        
+        self.gross_total = gross_total
+        self.grand_total = self.gross_total - flt(self.discount)
+        self.payable_amount = self.grand_total - flt(self.paid_amount)
+
     def before_submit(self):
         # Loop through each row in the bookings child table
         for booking_row in self.invoice_item:

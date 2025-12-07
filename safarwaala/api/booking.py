@@ -101,16 +101,7 @@ def get_booking_details(doctype, name):
 
     # Fetch Financials
     if doc.invoice:
-        inv_fields = frappe.db.get_value("Customer Invoice", doc.invoice, ["name", "grand_total", "paid_amount", "docstatus"], as_dict=True)
-        if inv_fields:
-            if inv_fields.docstatus == 0:
-                inv_fields["status"] = "Draft"
-            elif inv_fields.paid_amount >= inv_fields.grand_total:
-                inv_fields["status"] = "Paid"
-            else:
-                inv_fields["status"] = "Unpaid"
-            
-            details["invoice_details"] = inv_fields
+        details["invoice_details"] = frappe.db.get_value("Customer Invoice", doc.invoice, ["name", "grand_total", "paid_amount", "status", "docstatus"], as_dict=True)
 
     payment_name = frappe.db.get_value("Driver Payment", {"booking_id": name}, "name")
     if payment_name:
@@ -195,6 +186,27 @@ def finalize_booking(booking_id):
         return {"success": True, "message": "Booking Finalized and Financials Generated."}
     except Exception as e:
         frappe.log_error(f"Finalize Booking Error: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+@frappe.whitelist()
+def submit_document(doctype, name):
+    """
+    Generic method to submit a document (Invoice, Payment, etc)
+    """
+    try:
+        if not frappe.db.exists(doctype, name):
+             return {"success": False, "message": f"{doctype} not found"}
+        
+        doc = frappe.get_doc(doctype, name)
+        if doc.docstatus == 1:
+            return {"success": False, "message": "Document is already submitted."}
+            
+        doc.flags.ignore_permissions = True
+        doc.submit()
+        
+        return {"success": True, "message": f"{doctype} Submitted Successfully."}
+    except Exception as e:
+        frappe.log_error(f"Submit Document Error: {str(e)}")
         return {"success": False, "message": str(e)}
 
 @frappe.whitelist()
