@@ -99,6 +99,13 @@ def get_booking_details(doctype, name):
         if details["car_modal_details"] and "modal_name" in details["car_modal_details"]:
              details["car_modal_details"]["name"] = details["car_modal_details"].pop("modal_name")
 
+    # Fetch Financials
+    payment = frappe.db.get_value("Driver Payment", {"booking_id": name}, "name")
+    if payment:
+        details["driver_payment"] = payment
+    
+    # Invoice is already in details if field exists ("invoice")
+
     return details
 
 @frappe.whitelist()
@@ -115,7 +122,7 @@ def manage_duty_slip(booking_id, action="create", **kwargs):
             if doc.docstatus == 1:
                 return {"success": False, "message": "Duty Slip is already submitted and cannot be edited."}
         else:
-            if action != "create":
+            if action not in ["create", "submit"]:
                  return {"success": False, "message": "Duty Slip not found"}
             
             # Create new
@@ -138,11 +145,39 @@ def manage_duty_slip(booking_id, action="create", **kwargs):
         
         if action == "submit":
             doc.submit()
+            # Also submit the parent booking
+            if doc.booking_id and frappe.db.exists(doc.booking_type, doc.booking_id):
+                parent_doc = frappe.get_doc(doc.booking_type, doc.booking_id)
+                if parent_doc.docstatus == 0:
+                    parent_doc.flags.ignore_permissions = True
+                    parent_doc.submit()
             
         return {"success": True, "message": "Duty Slip updated", "data": doc.name}
 
     except Exception as e:
         frappe.log_error(f"Duty Slip Error: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+@frappe.whitelist()
+def finalize_booking(booking_id):
+    """
+    Manually finalize/submit a booking. 
+    Useful if automatic submission failed or for legacy bookings.
+    """
+    try:
+        if not frappe.db.exists("OutStation Bookings", booking_id):
+             return {"success": False, "message": "Booking not found"}
+        
+        doc = frappe.get_doc("OutStation Bookings", booking_id)
+        if doc.docstatus == 1:
+            return {"success": False, "message": "Booking is already submitted."}
+            
+        doc.flags.ignore_permissions = True
+        doc.submit()
+        
+        return {"success": True, "message": "Booking Finalized and Financials Generated."}
+    except Exception as e:
+        frappe.log_error(f"Finalize Booking Error: {str(e)}")
         return {"success": False, "message": str(e)}
 
 @frappe.whitelist()
