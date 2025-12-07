@@ -28,13 +28,15 @@ def get_my_bookings():
 
     driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
     customer = frappe.db.get_value("Customer", {"linked_user": user}, "name")
-    # Vendor logic if needed: vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+    vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
 
     filters = []
     if driver:
         filters.append(f"driver = '{driver}'")
     if customer:
         filters.append(f"customer = '{customer}'")
+    if vendor:
+        filters.append(f"assigned_to = '{vendor}'")
     
     # If user is not linked to anything, return relevant bookings (e.g. created by them if they are system user) 
     # or just return empty. For now, if no links, assume empty.
