@@ -110,6 +110,8 @@ def manage_duty_slip(booking_id, action="create", **kwargs):
         
         if ds_name:
             doc = frappe.get_doc("Duty Slips", ds_name)
+            if doc.docstatus == 1:
+                return {"success": False, "message": "Duty Slip is already submitted and cannot be edited."}
         else:
             if action != "create":
                  return {"success": False, "message": "Duty Slip not found"}
@@ -131,6 +133,10 @@ def manage_duty_slip(booking_id, action="create", **kwargs):
         if "return_datetime" in kwargs: doc.return_datetime = kwargs.get("return_datetime")
         
         doc.save(ignore_permissions=True)
+        
+        if action == "submit":
+            doc.submit()
+            
         return {"success": True, "message": "Duty Slip updated", "data": doc.name}
 
     except Exception as e:
