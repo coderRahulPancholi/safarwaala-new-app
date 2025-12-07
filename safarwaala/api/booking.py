@@ -101,7 +101,7 @@ def get_booking_details(doctype, name):
 
     # Fetch Financials
     if doc.invoice:
-        details["invoice_details"] = frappe.db.get_value("Customer Invoice", doc.invoice, ["name", "grand_total", "paid_amount", "status", "docstatus"], as_dict=True)
+        details["invoice_details"] = frappe.db.get_value("Customer Invoice", doc.invoice, ["name", "grand_total", "paid_amount", "payable_amount", "status", "docstatus"], as_dict=True)
 
     payment_name = frappe.db.get_value("Driver Payment", {"booking_id": name}, "name")
     if payment_name:
