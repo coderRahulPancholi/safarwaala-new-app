@@ -300,3 +300,96 @@ def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, b
     except Exception as e:
         frappe.log_error(f"Failed to log expense: {str(e)}", "Vehicle Expense Log Error")
         return {"success": False, "message": str(e)}
+
+@frappe.whitelist()
+def get_dashboard_stats():
+    try:
+        user = frappe.session.user
+        roles = frappe.get_roles(user)
+        
+        stats = {
+            "active_drivers": 0,
+            "total_vehicles": 0,
+            "pending_payments": 0,
+            "total_earnings": 0,
+            "upcoming_trips": 0,
+            "driver_earnings": 0,
+            "duty_status": "Unknown"
+        }
+        
+        if "Vendor" in roles or "System Manager" in roles:
+            # Vendor Stats
+            
+            # Identify Vendor
+            vendor_name = None
+            if "System Manager" not in roles:
+                vendor_name = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+            
+            # Filter Conditions
+            driver_filters = {"disabled": 0}
+            car_filters = {"disabled": 0}
+            payment_filters = {"docstatus": 0}
+            
+            if vendor_name:
+                driver_filters["owner_vendor"] = vendor_name
+                car_filters["belongs_to_vendor"] = vendor_name
+                payment_filters["vendor"] = vendor_name
+                # Note: Customer Invoice filtering is complex as it links to Customer, not directly to Vendor.
+                # However, OutStation Bookings are assigned to Vendor.
+                # So we can sum invoices linked to bookings assigned to this vendor.
+            
+            stats["active_drivers"] = frappe.db.count("Drivers", filters=driver_filters)
+            stats["total_vehicles"] = frappe.db.count("Cars", filters=car_filters)
+            
+            # Pending Payments (Driver Payments) - Using docstatus=0 (Draft) as Pending
+            # We can use get_value with sum function, but filters dict is easier via get_list/sql if complex
+            if vendor_name:
+                 pending_sql = frappe.db.sql("""
+                    SELECT SUM(amount) FROM `tabDriver Payment` WHERE docstatus = 0 AND vendor = %s
+                """, (vendor_name,))
+            else:
+                 pending_sql = frappe.db.sql("""
+                    SELECT SUM(amount) FROM `tabDriver Payment` WHERE docstatus = 0
+                """)
+            stats["pending_payments"] = pending_sql[0][0] if pending_sql and pending_sql[0][0] else 0
+
+            # Total Earnings (Customer Invoices Paid)
+            # If Vendor, join with OutStation Bookings
+            if vendor_name:
+                earnings_sql = frappe.db.sql("""
+                    SELECT SUM(ci.grand_total) 
+                    FROM `tabCustomer Invoice` ci
+                    JOIN `tabOutStation Bookings` ob ON ci.name = ob.invoice
+                    WHERE ci.status = 'Paid' AND ob.assigned_to = %s
+                """, (vendor_name,))
+            else:
+                earnings_sql = frappe.db.sql("""
+                    SELECT SUM(grand_total) FROM `tabCustomer Invoice` WHERE status = 'Paid'
+                """)
+            stats["total_earnings"] = earnings_sql[0][0] if earnings_sql and earnings_sql[0][0] else 0
+
+        if "Driver" in roles:
+            # Driver Stats
+            driver_doc_name = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
+            if driver_doc_name:
+                stats["upcoming_trips"] = frappe.db.count("OutStation Bookings", filters={"driver": driver_doc_name, "booking_status": "Confirmed"})
+                
+                # Driver Earnings - Using docstatus=1 (Submitted) as Paid
+                driver_earnings_sql = frappe.db.sql("""
+                    SELECT SUM(amount) FROM `tabDriver Payment` WHERE driver = %s AND docstatus = 1
+                """, (driver_doc_name,))
+                stats["driver_earnings"] = driver_earnings_sql[0][0] if driver_earnings_sql and driver_earnings_sql[0][0] else 0
+                
+                # Duty Status - Derive from disabled field
+                is_disabled = frappe.db.get_value("Drivers", driver_doc_name, "disabled")
+                stats["duty_status"] = "Inactive" if is_disabled else "Active"
+            else:
+                stats["upcoming_trips"] = 0
+                stats["driver_earnings"] = 0
+                stats["duty_status"] = "Not Found"
+
+        return {"success": True, "data": stats}
+
+    except Exception as e:
+        frappe.log_error(f"Dashboard Stats Error: {str(e)}")
+        return {"success": False, "message": str(e)}
