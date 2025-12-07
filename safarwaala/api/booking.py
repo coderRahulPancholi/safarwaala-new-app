@@ -100,14 +100,94 @@ def get_booking_details(doctype, name):
     return details
 
 @frappe.whitelist()
-def log_expense(expense_type, amount, car, paid_by="Driver", driver=None, booking_ref=None, booking_type=None, expense_date=None, receipt_image=None, is_billable=0):
+def manage_duty_slip(booking_id, action="create", **kwargs):
     """
-    Log a vehicle expense.
+    Create or Update a Duty Slip for a booking.
     """
     try:
-        # Auto-set billable for Toll/Parking if not explicitly provided
+        # Check if Duty Slip exists for this booking
+        ds_name = frappe.db.exists("Duty Slips", {"booking_id": booking_id})
+        
+        if ds_name:
+            doc = frappe.get_doc("Duty Slips", ds_name)
+        else:
+            if action != "create":
+                 return {"success": False, "message": "Duty Slip not found"}
+            
+            # Create new
+            booking_doc = frappe.get_doc("OutStation Bookings", booking_id) # Or Routine
+            doc = frappe.new_doc("Duty Slips")
+            doc.booking_type = "OutStation Bookings" # Should make dynamic if supporting Routine
+            doc.booking_id = booking_id
+            doc.driver = booking_doc.driver
+            doc.car = booking_doc.car
+            doc.car_modal = booking_doc.car_modal
+            doc.customer = booking_doc.customer
+        
+        # Update fields
+        if "start_km" in kwargs: doc.start_km = kwargs.get("start_km")
+        if "end_km" in kwargs: doc.end_km = kwargs.get("end_km")
+        if "departure_datetime" in kwargs: doc.departure_datetime = kwargs.get("departure_datetime")
+        if "return_datetime" in kwargs: doc.return_datetime = kwargs.get("return_datetime")
+        
+        doc.save(ignore_permissions=True)
+        return {"success": True, "message": "Duty Slip updated", "data": doc.name}
+
+    except Exception as e:
+        frappe.log_error(f"Duty Slip Error: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+@frappe.whitelist()
+def get_booking_expenses(booking_id):
+    """
+    Fetch all Vehicle Expense Logs linked to this booking.
+    """
+    return frappe.db.get_all("Vehicle Expense Log", 
+        filters={"booking_ref": booking_id}, 
+        fields=["name", "expense_type", "amount", "expense_date", "status", "receipt_image"]
+    )
+
+@frappe.whitelist()
+def get_duty_slip_details(booking_id):
+    ds_name = frappe.db.get_value("Duty Slips", {"booking_id": booking_id}, "name")
+    if ds_name:
+        return frappe.get_doc("Duty Slips", ds_name).as_dict()
+    return None
+
+@frappe.whitelist()
+def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, booking_ref=None, booking_type=None, expense_date=None, receipt_image=None, is_billable=0):
+    """
+    Log a vehicle expense. Auto-fetches car/driver from booking if not provided.
+    """
+    try:
+        # Auto-set billable for Toll/Parking
         if not is_billable and expense_type in ["Toll", "Parking"]:
             is_billable = 1
+        
+        # Dynamic Fetch from Booking
+        if booking_ref:
+            # Try to infer booking_type if missing, or fetch car/driver if missing
+            b_doc = None
+            inferred_type = None
+
+            if frappe.db.exists("OutStation Bookings", booking_ref):
+                b_doc = frappe.get_doc("OutStation Bookings", booking_ref)
+                inferred_type = "OutStation Bookings"
+            elif frappe.db.exists("Routine Bookings", booking_ref):
+                b_doc = frappe.get_doc("Routine Bookings", booking_ref)
+                inferred_type = "Routine Bookings"
+            
+            # Set booking_type if not provided
+            if not booking_type and inferred_type:
+                booking_type = inferred_type
+
+            # Set car/driver if missing and we found the doc
+            if b_doc:
+                if not car: car = b_doc.car
+                if not driver: driver = b_doc.driver
+
+        if not car:
+            return {"success": False, "message": "Car is required and could not be fetched from booking."}
 
         expense_doc = frappe.get_doc({
             "doctype": "Vehicle Expense Log",
