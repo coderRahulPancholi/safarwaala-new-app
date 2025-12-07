@@ -181,6 +181,26 @@ def finalize_booking(booking_id):
         return {"success": False, "message": str(e)}
 
 @frappe.whitelist()
+def generate_financials(booking_id):
+    """
+    Generate financials (Invoice/Payment) for a booking without submitting it.
+    Allows for preview/review.
+    """
+    try:
+        if not frappe.db.exists("OutStation Bookings", booking_id):
+             return {"success": False, "message": "Booking not found"}
+        
+        doc = frappe.get_doc("OutStation Bookings", booking_id)
+        # Call the creation methods manually
+        doc.create_customer_invoice()
+        doc.create_driver_payment()
+        
+        return {"success": True, "message": "Financials Generated for Review."}
+    except Exception as e:
+        frappe.log_error(f"Generate Financials Error: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+@frappe.whitelist()
 def get_booking_expenses(booking_id):
     """
     Fetch all Vehicle Expense Logs linked to this booking.

@@ -136,6 +136,10 @@ class OutStationBookings(Document):
         frappe.msgprint(f"Customer Invoice {invoice.name} created.")
 
     def create_driver_payment(self):
+        # Check if already exists
+        if frappe.db.exists("Driver Payment", {"booking_id": self.name}):
+            return
+
         # Calculate Expenses paid by Driver
         driver_expenses = frappe.db.sql("""
             SELECT SUM(amount) FROM `tabVehicle Expense Log`
