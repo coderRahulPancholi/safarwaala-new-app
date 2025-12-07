@@ -42,6 +42,12 @@
             "options": "Vendors"
         },
         {
+            "default": "0",
+            "fieldname": "disabled",
+            "fieldtype": "Check",
+            "label": "Disabled"
+        },
+        {
             "fieldname": "column_break_uoxc",
             "fieldtype": "Column Break"
         },

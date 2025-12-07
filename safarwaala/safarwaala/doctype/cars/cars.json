@@ -33,6 +33,12 @@
             "fieldtype": "Link",
             "label": "Belongs To (Vendor)",
             "options": "Vendors"
+        },
+        {
+            "default": "0",
+            "fieldname": "disabled",
+            "fieldtype": "Check",
+            "label": "Disabled"
         }
     ],
     "grid_page_length": 50,
