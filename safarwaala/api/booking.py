@@ -100,11 +100,28 @@ def get_booking_details(doctype, name):
              details["car_modal_details"]["name"] = details["car_modal_details"].pop("modal_name")
 
     # Fetch Financials
-    payment = frappe.db.get_value("Driver Payment", {"booking_id": name}, "name")
-    if payment:
-        details["driver_payment"] = payment
-    
-    # Invoice is already in details if field exists ("invoice")
+    if doc.invoice:
+        inv_fields = frappe.db.get_value("Customer Invoice", doc.invoice, ["name", "grand_total", "paid_amount", "docstatus"], as_dict=True)
+        if inv_fields:
+            if inv_fields.docstatus == 0:
+                inv_fields["status"] = "Draft"
+            elif inv_fields.paid_amount >= inv_fields.grand_total:
+                inv_fields["status"] = "Paid"
+            else:
+                inv_fields["status"] = "Unpaid"
+            
+            details["invoice_details"] = inv_fields
+
+    payment_name = frappe.db.get_value("Driver Payment", {"booking_id": name}, "name")
+    if payment_name:
+        pay_fields = frappe.db.get_value("Driver Payment", payment_name, ["name", "amount", "docstatus", "payment_date"], as_dict=True)
+        if pay_fields:
+            pay_fields["status"] = "Draft" if pay_fields.docstatus == 0 else "Submitted"
+            details["driver_payment_details"] = pay_fields
+        
+        details["driver_payment"] = payment_name
+
+
 
     return details
 
