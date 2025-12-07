@@ -101,6 +101,61 @@ class OutStationBookings(Document):
         self.gross_total = flt(self.net_total) + flt(self.tax_total)
         self.grand_total = flt(self.gross_total) - flt(self.discount)
 
+    def on_submit(self):
+        self.create_customer_invoice()
+        self.create_driver_payment()
+
+    def create_customer_invoice(self):
+        if self.invoice: return # Already created
+        
+        invoice = frappe.get_doc({
+            "doctype": "Customer Invoice",
+            "customer": self.customer,
+            "invoice_date": frappe.utils.nowdate(),
+            "invoice_due_date": frappe.utils.nowdate(),
+            "invoice_item": [{
+                "booking_type": self.doctype,
+                "booking_id": self.name,
+                "amount": self.grand_total
+            }],
+            "gross_total": self.grand_total,
+            "grand_total": self.grand_total,
+            "payable_amount": self.grand_total
+        })
+        invoice.insert(ignore_permissions=True)
+        self.db_set("invoice", invoice.name)
+        frappe.msgprint(f"Customer Invoice {invoice.name} created.")
+
+    def create_driver_payment(self):
+        # Calculate Expenses paid by Driver
+        driver_expenses = frappe.db.sql("""
+            SELECT SUM(amount) FROM `tabVehicle Expense Log`
+            WHERE booking_type=%s AND booking_ref=%s AND paid_by='Driver' AND docstatus=1
+        """, (self.doctype, self.name))
+        
+        total_expenses = flt(driver_expenses[0][0]) if driver_expenses and driver_expenses[0][0] else 0.0
+        
+        # Total Payment = Night Charges + Expenses
+        total_payment = flt(self.night_charges) + total_expenses
+        
+        if total_payment <= 0: return
+
+        # Fetch Vendor linked to Driver
+        vendor = frappe.db.get_value("Drivers", self.driver, "owner_vendor")
+        
+        payment = frappe.get_doc({
+            "doctype": "Driver Payment",
+            "booking_type": self.doctype,
+            "booking_id": self.name,
+            "driver": self.driver,
+            "vendor": vendor,
+            "amount": total_payment,
+            "payment_date": frappe.utils.nowdate(),
+            "details": f"Auto-generated on Booking Completion. Night Charges: {self.night_charges}, Expenses: {total_expenses}"
+        })
+        payment.insert(ignore_permissions=True)
+        frappe.msgprint(f"Driver Payment {payment.name} created for amount {total_payment}")
+
 @frappe.whitelist()
 def get_billable_expenses_total(booking_id):
     """
