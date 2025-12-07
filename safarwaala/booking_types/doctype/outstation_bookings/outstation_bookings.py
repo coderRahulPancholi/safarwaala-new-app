@@ -102,6 +102,23 @@ class OutStationBookings(Document):
         self.grand_total = flt(self.gross_total) - flt(self.discount)
 
     def on_submit(self):
+        # Auto-submit linked Vehicle Expense Logs FIRST
+        # This ensures they are 'Submitted' (docstatus=1) so that 
+        # create_customer_invoice and create_driver_payment can fetch them correctly.
+        expenses = frappe.db.get_list('Vehicle Expense Log', 
+                                      filters={
+                                          'booking_ref': self.name,
+                                          'docstatus': 0
+                                      })
+        for expense in expenses:
+            try:
+                exp_doc = frappe.get_doc("Vehicle Expense Log", expense.name)
+                exp_doc.flags.ignore_permissions = True
+                exp_doc.submit()
+                frappe.msgprint(f"Expense {expense.name} submitted.")
+            except Exception as e:
+                frappe.log_error(f"Failed to submit expense {expense.name}: {e}")
+
         self.create_customer_invoice()
         self.create_driver_payment()
 
