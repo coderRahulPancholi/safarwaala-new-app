@@ -26,20 +26,37 @@ def get_my_bookings():
     if user == "Guest":
         return []
 
-    bookings = frappe.db.sql("""
+    driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
+    customer = frappe.db.get_value("Customer", {"linked_user": user}, "name")
+    # Vendor logic if needed: vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+
+    filters = []
+    if driver:
+        filters.append(f"driver = '{driver}'")
+    if customer:
+        filters.append(f"customer = '{customer}'")
+    
+    # If user is not linked to anything, return relevant bookings (e.g. created by them if they are system user) 
+    # or just return empty. For now, if no links, assume empty.
+    if not filters:
+        # Fallback: check owner?
+        # filters.append(f"owner = '{user}'")
+        return []
+
+    where_clause = " OR ".join(filters)
+
+    bookings = frappe.db.sql(f"""
         (SELECT 
-            b.name, b.booking_status, b.departure_datetime, b.creation, b.start_from, b.`to`, b.grand_total, 'OutStation' as type
-        FROM `tabOutStation Bookings` b
-        JOIN `tabCustomer` c ON b.customer = c.name
-        WHERE c.linked_user = %(user)s)
+            name, booking_status, departure_datetime, creation, start_from, `to`, grand_total, customer_name, 'OutStation' as type, booking_status as status
+        FROM `tabOutStation Bookings`
+        WHERE {where_clause})
         UNION ALL
         (SELECT 
-            b.name, b.booking_status, b.departure_datetime, b.creation, b.start_from, b.`to`, b.grand_total, 'Routine' as type
-        FROM `tabRoutine Bookings` b
-        JOIN `tabCustomer` c ON b.customer = c.name
-        WHERE c.linked_user = %(user)s)
+            name, booking_status, departure_datetime, creation, start_from, `to`, grand_total, customer_name, 'Routine' as type, booking_status as status
+        FROM `tabRoutine Bookings`
+        WHERE {where_clause})
         ORDER BY creation DESC
-    """, {"user": user}, as_dict=True)
+    """, as_dict=True)
 
     return bookings
 
