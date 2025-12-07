@@ -108,6 +108,14 @@ class OutStationBookings(Document):
     def create_customer_invoice(self):
         if self.invoice: return # Already created
         
+        # Calculate Expenses paid by Customer
+        customer_expenses = frappe.db.sql("""
+            SELECT SUM(amount) FROM `tabVehicle Expense Log`
+            WHERE booking_type=%s AND booking_ref=%s AND paid_by='Customer' AND docstatus=1
+        """, (self.doctype, self.name))
+
+        customer_paid = flt(customer_expenses[0][0]) if customer_expenses and customer_expenses[0][0] else 0.0
+
         invoice = frappe.get_doc({
             "doctype": "Customer Invoice",
             "customer": self.customer,
@@ -120,7 +128,8 @@ class OutStationBookings(Document):
             }],
             "gross_total": self.grand_total,
             "grand_total": self.grand_total,
-            "payable_amount": self.grand_total
+            "paid_amount": customer_paid,
+            "payable_amount": self.grand_total - customer_paid
         })
         invoice.insert(ignore_permissions=True)
         self.db_set("invoice", invoice.name)
