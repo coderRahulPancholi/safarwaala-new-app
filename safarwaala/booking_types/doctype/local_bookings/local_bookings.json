@@ -1,55 +1,366 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2025-05-16 12:59:04.940350",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "section_break_voaq",
-  "amended_from"
- ],
- "fields": [
-  {
-   "fieldname": "section_break_voaq",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Local Bookings",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "is_submittable": 1,
- "links": [],
- "modified": "2025-05-16 12:59:04.940350",
- "modified_by": "Administrator",
- "module": "Booking Types",
- "name": "Local Bookings",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "naming_series:",
+    "creation": "2025-05-18 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "naming_series",
+        "booking_status",
+        "section_break_customer",
+        "customer",
+        "customer_name",
+        "customer_mobile",
+        "column_break_assignment",
+        "assigned_to",
+        "car_modal",
+        "car",
+        "driver",
+        "section_break_details",
+        "pickup_datetime",
+        "pickup_location",
+        "column_break_drop",
+        "return_datetime",
+        "drop_location",
+        "section_break_pricing_params",
+        "min_hours",
+        "per_hour_rate",
+        "min_km",
+        "column_break_rates",
+        "per_km_rate",
+        "night_rate",
+        "section_break_running",
+        "start_km",
+        "end_km",
+        "total_km",
+        "extra_km",
+        "column_break_durations",
+        "total_hours",
+        "extra_hours",
+        "nights",
+        "section_break_calculations",
+        "base_charges",
+        "extra_km_charges",
+        "extra_hour_charges",
+        "column_break_calc2",
+        "night_charges",
+        "trip_expenses_total",
+        "total_charges",
+        "section_break_taxes",
+        "tax_and_charges",
+        "tax_total",
+        "grand_total",
+        "section_break_references",
+        "invoice",
+        "amended_from"
+    ],
+    "fields": [
+        {
+            "fieldname": "naming_series",
+            "fieldtype": "Select",
+            "label": "Naming Series",
+            "options": "LB-.MM.-.YY.-.###",
+            "default": "LB-.MM.-.YY.-.###"
+        },
+        {
+            "fieldname": "booking_status",
+            "fieldtype": "Select",
+            "label": "Booking Status",
+            "options": "Pending\nConfirmed\nOngoing\nCompleted\nCancelled\nInvoiced",
+            "default": "Pending"
+        },
+        {
+            "fieldname": "section_break_customer",
+            "fieldtype": "Section Break",
+            "label": "Customer Details"
+        },
+        {
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "label": "Customer",
+            "options": "Customer",
+            "reqd": 1
+        },
+        {
+            "fieldname": "customer_name",
+            "fieldtype": "Data",
+            "label": "Customer Name",
+            "read_only": 1,
+            "fetch_from": "customer.name1"
+        },
+        {
+            "fieldname": "customer_mobile",
+            "fieldtype": "Data",
+            "label": "Customer Mobile",
+            "read_only": 1,
+            "fetch_from": "customer.mobile"
+        },
+        {
+            "fieldname": "column_break_assignment",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "assigned_to",
+            "fieldtype": "Link",
+            "label": "Assigned Vendor",
+            "options": "Vendors"
+        },
+        {
+            "fieldname": "car_modal",
+            "fieldtype": "Link",
+            "label": "Car Modal",
+            "options": "Car Modals",
+            "reqd": 1
+        },
+        {
+            "fieldname": "car",
+            "fieldtype": "Link",
+            "label": "Car",
+            "options": "Cars"
+        },
+        {
+            "fieldname": "driver",
+            "fieldtype": "Link",
+            "label": "Driver",
+            "options": "Drivers"
+        },
+        {
+            "fieldname": "section_break_details",
+            "fieldtype": "Section Break",
+            "label": "Run Details"
+        },
+        {
+            "fieldname": "pickup_datetime",
+            "fieldtype": "Datetime",
+            "label": "Pickup Date/Time",
+            "reqd": 1
+        },
+        {
+            "fieldname": "pickup_location",
+            "fieldtype": "Data",
+            "label": "Pickup Location"
+        },
+        {
+            "fieldname": "column_break_drop",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "return_datetime",
+            "fieldtype": "Datetime",
+            "label": "Return Date/Time"
+        },
+        {
+            "fieldname": "drop_location",
+            "fieldtype": "Data",
+            "label": "Drop Location"
+        },
+        {
+            "fieldname": "section_break_pricing_params",
+            "fieldtype": "Section Break",
+            "label": "Pricing Parameters"
+        },
+        {
+            "fieldname": "min_hours",
+            "fieldtype": "Int",
+            "label": "Min Hours",
+            "fetch_from": "car_modal.min_local_hour",
+            "read_only": 1
+        },
+        {
+            "fieldname": "per_hour_rate",
+            "fieldtype": "Currency",
+            "label": "Per Hour Rate",
+            "fetch_from": "car_modal.local_hour_rate",
+            "read_only": 1
+        },
+        {
+            "fieldname": "min_km",
+            "fieldtype": "Int",
+            "label": "Min Km",
+            "fetch_from": "car_modal.min_local_km",
+            "read_only": 1
+        },
+        {
+            "fieldname": "column_break_rates",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "per_km_rate",
+            "fieldtype": "Currency",
+            "label": "Per Km Rate",
+            "fetch_from": "car_modal.local_km_rate",
+            "read_only": 1
+        },
+        {
+            "fieldname": "night_rate",
+            "fieldtype": "Currency",
+            "label": "Night Rate",
+            "fetch_from": "car_modal.night_rate",
+            "read_only": 1
+        },
+        {
+            "fieldname": "section_break_running",
+            "fieldtype": "Section Break",
+            "label": "Log Sheet"
+        },
+        {
+            "fieldname": "start_km",
+            "fieldtype": "Int",
+            "label": "Start Km"
+        },
+        {
+            "fieldname": "end_km",
+            "fieldtype": "Int",
+            "label": "End Km"
+        },
+        {
+            "fieldname": "total_km",
+            "fieldtype": "Int",
+            "label": "Total Km",
+            "read_only": 1
+        },
+        {
+            "fieldname": "extra_km",
+            "fieldtype": "Int",
+            "label": "Extra Km",
+            "read_only": 1
+        },
+        {
+            "fieldname": "column_break_durations",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "total_hours",
+            "fieldtype": "Float",
+            "label": "Total Hours",
+            "read_only": 1
+        },
+        {
+            "fieldname": "extra_hours",
+            "fieldtype": "Float",
+            "label": "Extra Hours",
+            "read_only": 1
+        },
+        {
+            "fieldname": "nights",
+            "fieldtype": "Int",
+            "label": "Nights Charged"
+        },
+        {
+            "fieldname": "section_break_calculations",
+            "fieldtype": "Section Break",
+            "label": "Billing"
+        },
+        {
+            "fieldname": "base_charges",
+            "fieldtype": "Currency",
+            "label": "Base Package Charges",
+            "read_only": 1,
+            "description": "Min Hours * Per Hour Rate"
+        },
+        {
+            "fieldname": "extra_km_charges",
+            "fieldtype": "Currency",
+            "label": "Extra Km Charges",
+            "read_only": 1
+        },
+        {
+            "fieldname": "extra_hour_charges",
+            "fieldtype": "Currency",
+            "label": "Extra Hour Charges",
+            "read_only": 1
+        },
+        {
+            "fieldname": "column_break_calc2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "night_charges",
+            "fieldtype": "Currency",
+            "label": "Night Charges"
+        },
+        {
+            "fieldname": "trip_expenses_total",
+            "fieldtype": "Currency",
+            "label": "Total Expenses",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_charges",
+            "fieldtype": "Currency",
+            "label": "Total Amount",
+            "read_only": 1
+        },
+        {
+            "fieldname": "section_break_taxes",
+            "fieldtype": "Section Break",
+            "label": "Taxes"
+        },
+        {
+            "fieldname": "tax_and_charges",
+            "fieldtype": "Table",
+            "label": "Tax And Charges",
+            "options": "Tax and Charges"
+        },
+        {
+            "fieldname": "tax_total",
+            "fieldtype": "Currency",
+            "label": "Tax Total",
+            "read_only": 1
+        },
+        {
+            "fieldname": "grand_total",
+            "fieldtype": "Currency",
+            "label": "Grand Total",
+            "read_only": 1
+        },
+        {
+            "fieldname": "section_break_references",
+            "fieldtype": "Section Break",
+            "label": "References"
+        },
+        {
+            "fieldname": "invoice",
+            "fieldtype": "Link",
+            "label": "Customer Invoice",
+            "options": "Customer Invoice",
+            "read_only": 1
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "options": "Local Bookings",
+            "read_only": 1,
+            "print_hide": 1,
+            "no_copy": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "modified": "2025-05-18 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Booking Types",
+    "name": "Local Bookings",
+    "naming_rule": "By \"Naming Series\" field",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "submit": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
 }

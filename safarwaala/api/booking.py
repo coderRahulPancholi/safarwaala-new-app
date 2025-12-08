@@ -18,9 +18,49 @@ def create_booking_master(doc, method):
         frappe.log_error(f"Failed to create Booking Master for {doc.name}: {str(e)}", "Booking Master Creation Error")
 
 @frappe.whitelist()
+def create_booking(booking_type, booking_data):
+    """
+    Unified API to create bookings.
+    booking_type: 'OutStation', 'Local', 'Routine' or full DocType name.
+    booking_data: JSON string or dict of booking fields.
+    """
+    try:
+        if isinstance(booking_data, str):
+            import json
+            booking_data = json.loads(booking_data)
+            
+        doctype_map = {
+            "outstation": "OutStation Bookings",
+            "local": "Local Bookings",
+            "routine": "Routine Bookings"
+        }
+        
+        # Determine DocType
+        doctype = doctype_map.get(booking_type.lower())
+        if not doctype:
+            # Fallback checks
+            if frappe.db.exists("DocType", booking_type):
+                doctype = booking_type
+            elif frappe.db.exists("DocType", f"{booking_type} Bookings"):
+                doctype = f"{booking_type} Bookings"
+            else:
+                return {"success": False, "message": "Invalid Booking Type"}
+        
+        # Create Document
+        doc = frappe.new_doc(doctype)
+        doc.update(booking_data)
+        doc.insert(ignore_permissions=True)
+        
+        return {"success": True, "message": "Booking Created Successfully", "data": doc}
+
+    except Exception as e:
+        frappe.log_error(f"Create Booking Error: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+@frappe.whitelist()
 def get_my_bookings():
     """
-    Fetch both OutStation and Routine Bookings for the logged-in user's linked customer.
+    Fetch OutStation, Local, and Routine Bookings for the logged-in user's linked customer/driver/vendor.
     """
     user = frappe.session.user
     if user == "Guest":
@@ -38,11 +78,7 @@ def get_my_bookings():
     if vendor:
         filters.append(f"assigned_to = '{vendor}'")
     
-    # If user is not linked to anything, return relevant bookings (e.g. created by them if they are system user) 
-    # or just return empty. For now, if no links, assume empty.
     if not filters:
-        # Fallback: check owner?
-        # filters.append(f"owner = '{user}'")
         return []
 
     where_clause = " OR ".join(filters)
@@ -51,6 +87,11 @@ def get_my_bookings():
         (SELECT 
             name, booking_status, departure_datetime, creation, start_from, `to`, grand_total, customer_name, 'OutStation' as type, booking_status as status
         FROM `tabOutStation Bookings`
+        WHERE {where_clause})
+        UNION ALL
+        (SELECT 
+            name, booking_status, pickup_datetime as departure_datetime, creation, pickup_location as start_from, drop_location as `to`, grand_total, customer_name, 'Local' as type, booking_status as status
+        FROM `tabLocal Bookings`
         WHERE {where_clause})
         UNION ALL
         (SELECT 
@@ -134,9 +175,17 @@ def manage_duty_slip(booking_id, action="create", **kwargs):
                  return {"success": False, "message": "Duty Slip not found"}
             
             # Create new
-            booking_doc = frappe.get_doc("OutStation Bookings", booking_id) # Or Routine
+            booking_type = "OutStation Bookings"
+            if frappe.db.exists("Local Bookings", booking_id):
+                booking_type = "Local Bookings"
+            elif frappe.db.exists("Routine Bookings", booking_id):
+                booking_type = "Routine Bookings"
+            elif not frappe.db.exists("OutStation Bookings", booking_id):
+                 return {"success": False, "message": "Booking not found"}
+
+            booking_doc = frappe.get_doc(booking_type, booking_id)
             doc = frappe.new_doc("Duty Slips")
-            doc.booking_type = "OutStation Bookings" # Should make dynamic if supporting Routine
+            doc.booking_type = booking_type # Should make dynamic if supporting Routine
             doc.booking_id = booking_id
             doc.driver = booking_doc.driver
             doc.car = booking_doc.car
@@ -173,10 +222,14 @@ def finalize_booking(booking_id):
     Useful if automatic submission failed or for legacy bookings.
     """
     try:
-        if not frappe.db.exists("OutStation Bookings", booking_id):
+        # Determine doctype
+        doctype = "OutStation Bookings"
+        if frappe.db.exists("Local Bookings", booking_id):
+             doctype = "Local Bookings"
+        elif not frappe.db.exists("OutStation Bookings", booking_id):
              return {"success": False, "message": "Booking not found"}
         
-        doc = frappe.get_doc("OutStation Bookings", booking_id)
+        doc = frappe.get_doc(doctype, booking_id)
         if doc.docstatus == 1:
             return {"success": False, "message": "Booking is already submitted."}
             
@@ -216,10 +269,14 @@ def generate_financials(booking_id):
     Allows for preview/review.
     """
     try:
-        if not frappe.db.exists("OutStation Bookings", booking_id):
+        # Determine doctype
+        doctype = "OutStation Bookings"
+        if frappe.db.exists("Local Bookings", booking_id):
+             doctype = "Local Bookings"
+        elif not frappe.db.exists("OutStation Bookings", booking_id):
              return {"success": False, "message": "Booking not found"}
         
-        doc = frappe.get_doc("OutStation Bookings", booking_id)
+        doc = frappe.get_doc(doctype, booking_id)
         # Call the creation methods manually
         doc.create_customer_invoice()
         doc.create_driver_payment()
@@ -265,6 +322,9 @@ def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, b
             if frappe.db.exists("OutStation Bookings", booking_ref):
                 b_doc = frappe.get_doc("OutStation Bookings", booking_ref)
                 inferred_type = "OutStation Bookings"
+            elif frappe.db.exists("Local Bookings", booking_ref):
+                b_doc = frappe.get_doc("Local Bookings", booking_ref)
+                inferred_type = "Local Bookings"
             elif frappe.db.exists("Routine Bookings", booking_ref):
                 b_doc = frappe.get_doc("Routine Bookings", booking_ref)
                 inferred_type = "Routine Bookings"
