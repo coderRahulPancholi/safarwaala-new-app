@@ -194,3 +194,61 @@ def has_driver_payment_permission(doc, user):
 
     return False
 
+
+def get_bookings_master_condition(user):
+    if not user:
+        user = frappe.session.user
+    
+    if "System Manager" in frappe.get_roles(user) or "Administrator" in frappe.get_roles(user):
+        return ""
+
+    conditions = []
+
+    # Vendor Check: specific to 'assigned_to'
+    if "Vendor" in frappe.get_roles(user):
+        vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+        if vendor:
+            conditions.append(f"`assigned_to` = '{vendor}'")
+    
+    # Driver Check: specific to 'driver'
+    if "Driver" in frappe.get_roles(user):
+        driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
+        if driver:
+            conditions.append(f"`driver` = '{driver}'")
+
+    # Customer Check: specific to 'customer'
+    if "Customer" in frappe.get_roles(user):
+        customer = frappe.db.get_value("Customer", {"linked_user": user}, "name")
+        if customer:
+            conditions.append(f"`customer` = '{customer}'")
+
+    if not conditions:
+        return "1=0"
+        
+    return "(" + " OR ".join(conditions) + ")"
+
+def has_bookings_master_permission(doc, user):
+    if not user:
+        user = frappe.session.user
+
+    if "System Manager" in frappe.get_roles(user) or "Administrator" in frappe.get_roles(user):
+        return True
+
+    allow = False
+
+    if "Vendor" in frappe.get_roles(user):
+        vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+        if vendor and doc.assigned_to == vendor:
+            allow = True
+    
+    if not allow and "Driver" in frappe.get_roles(user):
+        driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
+        if driver and doc.driver == driver:
+            allow = True
+
+    if not allow and "Customer" in frappe.get_roles(user):
+        customer = frappe.db.get_value("Customer", {"linked_user": user}, "name")
+        if customer and doc.customer == customer:
+            allow = True
+
+    return allow

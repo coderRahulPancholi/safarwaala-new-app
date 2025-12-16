@@ -142,6 +142,7 @@ permission_query_conditions = {
 	"Drivers": "safarwaala.api.permission.get_driver_condition",
 	"Vendors": "safarwaala.api.permission.get_linked_user_condition",
     "OutStation Bookings": "safarwaala.api.permission.get_outstation_booking_condition",
+    "Bookings Master": "safarwaala.api.permission.get_bookings_master_condition",
     "Duty Slips": "safarwaala.api.permission.get_duty_slip_condition",
     "Driver Payment": "safarwaala.api.permission.get_driver_payment_condition",
 }
@@ -151,6 +152,7 @@ has_permission = {
 	"Drivers": "safarwaala.api.permission.has_driver_permission",
 	"Vendors": "safarwaala.api.permission.has_linked_permission",
     "OutStation Bookings": "safarwaala.api.permission.has_outstation_booking_permission",
+    "Bookings Master": "safarwaala.api.permission.has_bookings_master_permission",
     "Duty Slips": "safarwaala.api.permission.has_duty_slip_permission",
     "Driver Payment": "safarwaala.api.permission.has_driver_payment_permission",
 }
