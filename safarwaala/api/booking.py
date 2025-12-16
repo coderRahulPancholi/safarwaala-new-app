@@ -119,30 +119,30 @@ def get_booking_details(doctype, name):
     details = doc.as_dict()
     
     # Fetch Driver Details
-    if doc.driver:
+    if doc.get("driver"):
         # Drivers: name1 is the Name field, mobile is Mobile. No image field.
-        details["driver_details"] = frappe.db.get_value("Drivers", doc.driver, ["name1", "mobile"], as_dict=True)
+        details["driver_details"] = frappe.db.get_value("Drivers", doc.get("driver"), ["name1", "mobile"], as_dict=True)
         # Rename name1 to name for frontend consistency if needed, or handle in frontend
         if details["driver_details"] and "name1" in details["driver_details"]:
              details["driver_details"]["name"] = details["driver_details"].pop("name1")
         
     # Fetch Car Details
-    if doc.car:
+    if doc.get("car"):
         # Cars: license_plate. No image or color field.
-        details["car_details"] = frappe.db.get_value("Cars", doc.car, ["license_plate", "modal"], as_dict=True)
+        details["car_details"] = frappe.db.get_value("Cars", doc.get("car"), ["license_plate", "modal"], as_dict=True)
         if details["car_details"]:
              details["car_details"]["car_number"] = details["car_details"].get("license_plate")
         
     # Fetch Car Model Details
-    if doc.car_modal:
+    if doc.get("car_modal"):
         # Car Modals: modal_name. No image field.
-        details["car_modal_details"] = frappe.db.get_value("Car Modals", doc.car_modal, ["modal_name", "seating_capacity", "luggage_capacity"], as_dict=True)
+        details["car_modal_details"] = frappe.db.get_value("Car Modals", doc.get("car_modal"), ["modal_name", "seating_capacity", "luggage_capacity"], as_dict=True)
         if details["car_modal_details"] and "modal_name" in details["car_modal_details"]:
              details["car_modal_details"]["name"] = details["car_modal_details"].pop("modal_name")
 
     # Fetch Financials
-    if doc.invoice:
-        details["invoice_details"] = frappe.db.get_value("Customer Invoice", doc.invoice, ["name", "grand_total", "paid_amount", "payable_amount", "status", "docstatus"], as_dict=True)
+    if doc.get("invoice"):
+        details["invoice_details"] = frappe.db.get_value("Customer Invoice", doc.get("invoice"), ["name", "grand_total", "paid_amount", "payable_amount", "status", "docstatus"], as_dict=True)
 
     payment_name = frappe.db.get_value("Driver Payment", {"booking_id": name}, "name")
     if payment_name:
