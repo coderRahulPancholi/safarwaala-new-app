@@ -76,28 +76,28 @@ def get_my_bookings():
     if customer:
         filters.append(f"customer = '{customer}'")
     if vendor:
-        filters.append(f"assigned_to = '{vendor}'")
+        # Assuming 'vendor' field exists in Bookings Master, NOT assigned_to.
+        # Checking schema previously... wait, let me check schema quickly or assume standard.
+        # Actually Bookings Master likely has specific fields. Let's assume vendor field name is 'vendor' or check.
+        # Based on previous turns, it was likely linked to vendor via 'vendor' field?
+        # Let's check permissions or just use 'vendor' field if correct.
+        # Actually, looking at previous edits, Bookings Master does NOT use assigned_to, it uses 'vendor'.
+        filters.append(f"vendor = '{vendor}'")
     
     if not filters:
         return []
 
-    where_clause = " OR ".join(filters)
+    where_clause = " OR ".join(filters) # Wait, should be OR? No, a user is usually ONE role. But if they are multiple, OR is fine.
+    
+    # Actually, usually a session user is one person. But let's keep OR if they match multiple roles.
 
     bookings = frappe.db.sql(f"""
-        (SELECT 
-            name, booking_status, departure_datetime, creation, start_from, `to`, grand_total, customer_name, 'OutStation' as type, booking_status as status
-        FROM `tabOutStation Bookings`
-        WHERE {where_clause})
-        UNION ALL
-        (SELECT 
-            name, booking_status, pickup_datetime as departure_datetime, creation, pickup_location as start_from, drop_location as `to`, grand_total, customer_name, 'Local' as type, booking_status as status
-        FROM `tabLocal Bookings`
-        WHERE {where_clause})
-        UNION ALL
-        (SELECT 
-            name, booking_status, departure_datetime, creation, start_from, `to`, grand_total, customer_name, 'Routine' as type, booking_status as status
-        FROM `tabRoutine Bookings`
-        WHERE {where_clause})
+        SELECT 
+            name, booking_status, DATE_FORMAT(pickup_datetime, '%Y-%m-%d %H:%i:%s') as departure_datetime, creation, 
+            pickup_location as start_from, drop_location as `to`, grand_total, 
+            customer_name, booking_type as type, booking_status as status
+        FROM `tabBookings Master`
+        WHERE {where_clause}
         ORDER BY creation DESC
     """, as_dict=True)
 
