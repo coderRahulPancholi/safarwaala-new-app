@@ -158,39 +158,52 @@ def get_booking_details(doctype, name):
     return details
 
 @frappe.whitelist()
+def get_duty_slip_details(booking_id):
+    # Fetch Booking Status first
+    if not frappe.db.exists("Bookings Master", booking_id):
+        return None
+    
+    booking_status = frappe.db.get_value("Bookings Master", booking_id, "booking_status")
+    
+    ds_name = frappe.db.get_value("Duty Slips", {"booking_id": booking_id}, "name")
+    
+    data = {}
+    if ds_name:
+        data = frappe.get_doc("Duty Slips", ds_name).as_dict()
+    
+    # Inject status for frontend logic
+    data["status"] = booking_status
+    
+    return data
+
+@frappe.whitelist()
 def manage_duty_slip(booking_id, action="create", **kwargs):
     """
-    Create or Update a Duty Slip for a booking.
+    Create or Update a Duty Slip for a booking (Separate DocType).
     """
     try:
         # Check if Duty Slip exists for this booking
-        ds_name = frappe.db.exists("Duty Slips", {"booking_id": booking_id})
+        ds_name = frappe.db.get_value("Duty Slips", {"booking_id": booking_id}, "name")
         
         if ds_name:
             doc = frappe.get_doc("Duty Slips", ds_name)
             if doc.docstatus == 1:
                 return {"success": False, "message": "Duty Slip is already submitted and cannot be edited."}
         else:
-            if action not in ["create", "submit"]:
+            if action not in ["create", "submit", "start_trip"]:
                  return {"success": False, "message": "Duty Slip not found"}
             
-            # Create new
-            booking_type = "OutStation Bookings"
-            if frappe.db.exists("Local Bookings", booking_id):
-                booking_type = "Local Bookings"
-            elif frappe.db.exists("Routine Bookings", booking_id):
-                booking_type = "Routine Bookings"
-            elif not frappe.db.exists("OutStation Bookings", booking_id):
+            # Create new Duty Slip
+            if not frappe.db.exists("Bookings Master", booking_id):
                  return {"success": False, "message": "Booking not found"}
 
-            booking_doc = frappe.get_doc(booking_type, booking_id)
+            booking_doc = frappe.get_doc("Bookings Master", booking_id)
             doc = frappe.new_doc("Duty Slips")
-            doc.booking_type = booking_type # Should make dynamic if supporting Routine
+            doc.booking_type = "Bookings Master"
             doc.booking_id = booking_id
             doc.driver = booking_doc.driver
             doc.car = booking_doc.car
             doc.car_modal = booking_doc.car_modal
-            doc.customer = booking_doc.customer
         
         # Update fields
         if "start_km" in kwargs: doc.start_km = kwargs.get("start_km")
@@ -198,16 +211,24 @@ def manage_duty_slip(booking_id, action="create", **kwargs):
         if "departure_datetime" in kwargs: doc.departure_datetime = kwargs.get("departure_datetime")
         if "return_datetime" in kwargs: doc.return_datetime = kwargs.get("return_datetime")
         
+        # Handle Actions
+        if action == "start_trip":
+            doc.departure_datetime = frappe.utils.now_datetime()
+            # Update Parent Booking Status
+            frappe.db.set_value("Bookings Master", booking_id, "booking_status", "Ongoing")
+            frappe.db.set_value("Bookings Master", booking_id, "pickup_datetime", doc.departure_datetime)
+
+        if action == "end_trip":
+            doc.return_datetime = frappe.utils.now_datetime()
+            # Update Parent Booking Status
+            frappe.db.set_value("Bookings Master", booking_id, "booking_status", "Completed")
+            frappe.db.set_value("Bookings Master", booking_id, "return_datetime", doc.return_datetime)
+
         doc.save(ignore_permissions=True)
         
         if action == "submit":
-            doc.submit()
-            # Also submit the parent booking
-            if doc.booking_id and frappe.db.exists(doc.booking_type, doc.booking_id):
-                parent_doc = frappe.get_doc(doc.booking_type, doc.booking_id)
-                if parent_doc.docstatus == 0:
-                    parent_doc.flags.ignore_permissions = True
-                    parent_doc.submit()
+            if doc.docstatus == 0:
+                doc.submit()
             
         return {"success": True, "message": "Duty Slip updated", "data": doc.name}
 
@@ -295,13 +316,6 @@ def get_booking_expenses(booking_id):
         filters={"booking_ref": booking_id}, 
         fields=["name", "expense_type", "amount", "expense_date", "status", "receipt_image"]
     )
-
-@frappe.whitelist()
-def get_duty_slip_details(booking_id):
-    ds_name = frappe.db.get_value("Duty Slips", {"booking_id": booking_id}, "name")
-    if ds_name:
-        return frappe.get_doc("Duty Slips", ds_name).as_dict()
-    return None
 
 @frappe.whitelist()
 def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, booking_ref=None, booking_type=None, expense_date=None, receipt_image=None, is_billable=0):

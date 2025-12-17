@@ -5,7 +5,7 @@
  "creation": "2025-04-13 19:34:18.607749",
  "doctype": "DocType",
  "engine": "InnoDB",
-  "field_order": [
+ "field_order": [
   "details_section",
   "naming_series",
   "booking_status",
@@ -89,6 +89,7 @@
   {
    "fieldname": "booking_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Booking Type",
    "options": "Local\nOutstation\nRoutine",
    "reqd": 1
@@ -98,10 +99,10 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
-   "label": "Date",
-   "default": "Today"
+   "label": "Date"
   },
   {
    "fieldname": "amended_from",
@@ -121,15 +122,14 @@
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
-   "options": "Customer",
-   "reqd": 1
+   "options": "Customer"
   },
   {
    "fetch_from": "customer.name1",
+   "fetch_if_empty": 1,
    "fieldname": "customer_name",
    "fieldtype": "Data",
-   "label": "Customer Name",
-   "read_only": 1
+   "label": "Customer Name"
   },
   {
    "fieldname": "column_break_cust",
@@ -137,10 +137,10 @@
   },
   {
    "fetch_from": "customer.mobile",
+   "fetch_if_empty": 1,
    "fieldname": "customer_mobile",
    "fieldtype": "Data",
-   "label": "Customer Mobile",
-   "read_only": 1
+   "label": "Customer Mobile"
   },
   {
    "fieldname": "assignment_section",
@@ -156,6 +156,7 @@
   {
    "fieldname": "car_modal",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Car Model",
    "options": "Car Modals",
    "reqd": 1
@@ -225,6 +226,7 @@
   {
    "fieldname": "pickup_datetime",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "label": "Pickup Date/Time",
    "reqd": 1
   },
@@ -410,10 +412,12 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "modified": "2025-12-16 20:30:00.000000",
+ "links": [],
+ "modified": "2025-12-17 22:24:40.713299",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "Bookings Master",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
