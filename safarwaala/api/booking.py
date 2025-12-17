@@ -234,6 +234,34 @@ def manage_duty_slip(booking_id, action="create", **kwargs):
 
     except Exception as e:
         frappe.log_error(f"Duty Slip Error: {str(e)}")
+@frappe.whitelist()
+def sync_booking_details(booking_id):
+    """
+    Sync details from Duty Slips and Vehicle Expense Logs to Bookings Master.
+    Triggers calculation of charges, expenses, and taxes.
+    """
+    try:
+        if not frappe.db.exists("Bookings Master", booking_id):
+             return {"success": False, "message": "Booking not found"}
+        
+        doc = frappe.get_doc("Bookings Master", booking_id)
+        
+        # Sync from Duty Slips
+        ds_name = frappe.db.get_value("Duty Slips", {"booking_id": booking_id}, "name")
+        if ds_name:
+            ds_doc = frappe.get_doc("Duty Slips", ds_name)
+            doc.start_km = ds_doc.start_km
+            doc.end_km = ds_doc.end_km
+            doc.pickup_datetime = ds_doc.departure_datetime
+            doc.return_datetime = ds_doc.return_datetime
+            
+        # Save calls validate() which calls calculate_charges/expenses/taxes/totals
+        doc.save(ignore_permissions=True)
+        
+        return {"success": True, "message": "Booking Details Synced and Calculated.", "data": doc.name}
+
+    except Exception as e:
+        frappe.log_error(f"Sync Booking Error: {str(e)}")
         return {"success": False, "message": str(e)}
 
 @frappe.whitelist()
@@ -244,10 +272,15 @@ def finalize_booking(booking_id):
     """
     try:
         # Determine doctype
-        doctype = "OutStation Bookings"
-        if frappe.db.exists("Local Bookings", booking_id):
+        doctype = None
+        if frappe.db.exists("Bookings Master", booking_id):
+             doctype = "Bookings Master"
+        elif frappe.db.exists("Local Bookings", booking_id):
              doctype = "Local Bookings"
-        elif not frappe.db.exists("OutStation Bookings", booking_id):
+        elif frappe.db.exists("OutStation Bookings", booking_id):
+             doctype = "OutStation Bookings"
+        
+        if not doctype:
              return {"success": False, "message": "Booking not found"}
         
         doc = frappe.get_doc(doctype, booking_id)
@@ -256,6 +289,19 @@ def finalize_booking(booking_id):
             
         doc.flags.ignore_permissions = True
         doc.submit()
+        
+        # Auto-approve and submit all linked expenses
+        expenses = frappe.get_all("Vehicle Expense Log", filters={"booking_ref": booking_id}, pluck="name")
+        for exp_name in expenses:
+            exp_doc = frappe.get_doc("Vehicle Expense Log", exp_name)
+            if exp_doc.docstatus == 0:
+                exp_doc.status = "Approved"
+                exp_doc.flags.ignore_permissions = True
+                exp_doc.save()
+                try:
+                    exp_doc.submit()
+                except:
+                    pass
         
         return {"success": True, "message": "Booking Finalized and Financials Generated."}
     except Exception as e:
@@ -314,11 +360,11 @@ def get_booking_expenses(booking_id):
     """
     return frappe.db.get_all("Vehicle Expense Log", 
         filters={"booking_ref": booking_id}, 
-        fields=["name", "expense_type", "amount", "expense_date", "status", "receipt_image"]
+        fields=["name", "expense_type", "amount", "expense_date", "status", "receipt_image", "paid_by", "is_billable"]
     )
 
 @frappe.whitelist()
-def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, booking_ref=None, booking_type=None, expense_date=None, receipt_image=None, is_billable=0):
+def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, booking_ref=None, expense_date=None, receipt_image=None, is_billable=0):
     """
     Log a vehicle expense. Auto-fetches car/driver from booking if not provided.
     """
@@ -329,28 +375,15 @@ def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, b
         
         # Dynamic Fetch from Booking
         if booking_ref:
-            # Try to infer booking_type if missing, or fetch car/driver if missing
-            b_doc = None
-            inferred_type = None
-
-            if frappe.db.exists("OutStation Bookings", booking_ref):
-                b_doc = frappe.get_doc("OutStation Bookings", booking_ref)
-                inferred_type = "OutStation Bookings"
-            elif frappe.db.exists("Local Bookings", booking_ref):
-                b_doc = frappe.get_doc("Local Bookings", booking_ref)
-                inferred_type = "Local Bookings"
-            elif frappe.db.exists("Routine Bookings", booking_ref):
-                b_doc = frappe.get_doc("Routine Bookings", booking_ref)
-                inferred_type = "Routine Bookings"
-            
-            # Set booking_type if not provided
-            if not booking_type and inferred_type:
-                booking_type = inferred_type
-
-            # Set car/driver if missing and we found the doc
-            if b_doc:
+            # Check if it's a Bookings Master
+            if frappe.db.exists("Bookings Master", booking_ref):
+                b_doc = frappe.get_doc("Bookings Master", booking_ref)
+                
+                # Set car/driver if missing
                 if not car: car = b_doc.car
                 if not driver: driver = b_doc.driver
+            else:
+                 return {"success": False, "message": "Invalid Booking Reference"}
 
         if not car:
             return {"success": False, "message": "Car is required and could not be fetched from booking."}
@@ -363,7 +396,6 @@ def log_expense(expense_type, amount, car=None, paid_by="Driver", driver=None, b
             "is_billable": is_billable,
             "car": car,
             "driver": driver,
-            "booking_type": booking_type,
             "booking_ref": booking_ref,
             "paid_by": paid_by,
             "receipt_image": receipt_image,

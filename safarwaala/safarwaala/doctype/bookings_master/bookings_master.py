@@ -132,14 +132,13 @@ class BookingsMaster(Document):
 
     def calculate_expenses(self):
         # Fetch linked Vehicle Expense Logs
-        # We need to find logs linked to this booking
-        # Since we are now using Bookings Master, the 'booking_type' in log should match 'Bookings Master'
-        # or properly 'booking_ref' should remain consistent.
+        # We find logs linked to this booking reference.
+        # We remove strict booking_type dependency for flexibility, 
+        # but in practice it should be 'Bookings Master'.
         
         expenses = frappe.db.get_list('Vehicle Expense Log', 
                                       filters={
-                                          'booking_ref': self.name,
-                                          # 'booking_type': 'Bookings Master' # Assuming log is updated to link here
+                                          'booking_ref': self.name
                                       }, 
                                       fields=['amount', 'is_billable', 'paid_by'])
         

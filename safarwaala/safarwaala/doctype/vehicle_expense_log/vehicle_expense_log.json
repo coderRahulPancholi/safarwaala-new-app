@@ -72,16 +72,10 @@
             "options": "Drivers"
         },
         {
-            "fieldname": "booking_type",
-            "fieldtype": "Link",
-            "label": "Booking Type",
-            "options": "DocType"
-        },
-        {
             "fieldname": "booking_ref",
-            "fieldtype": "Dynamic Link",
+            "fieldtype": "Link",
             "label": "Booking Ref",
-            "options": "booking_type"
+            "options": "Bookings Master"
         },
         {
             "fieldname": "section_break_1",
