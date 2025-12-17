@@ -16,6 +16,14 @@ class BookingsMaster(Document):
     def before_save(self):
         self.validate()
 
+    def before_insert(self):
+        if not self.assigned_to:
+            # If user is a Vendor, auto-assign
+            if "Vendor" in frappe.get_roles(frappe.session.user):
+                 vendor = frappe.db.get_value("Vendors", {"linked_user": frappe.session.user}, "name")
+                 if vendor:
+                     self.assigned_to = vendor
+
     def calculate_charges(self):
         # Fetch rates from Car Modal if missing
         if self.car_modal:

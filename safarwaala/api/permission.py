@@ -6,6 +6,10 @@ def get_linked_user_condition(user):
 
     if user == "Administrator":
         return ""
+    if "System Manager" in frappe.get_roles(user):
+        return ""
+    if "Vendor" in frappe.get_roles(user):
+        return ""
 
     # Applies to Customer, Drivers, Vendors where the field is 'linked_user'
     return f"`linked_user` = '{user}'"
@@ -227,11 +231,15 @@ def get_bookings_master_condition(user):
         
     return "(" + " OR ".join(conditions) + ")"
 
-def has_bookings_master_permission(doc, user):
+def has_bookings_master_permission(doc, user=None, permission_type=None):
     if not user:
         user = frappe.session.user
 
     if "System Manager" in frappe.get_roles(user) or "Administrator" in frappe.get_roles(user):
+        return True
+    
+    # Allow creation if standard role permissions pass
+    if doc.is_new() or permission_type == "create":
         return True
 
     allow = False

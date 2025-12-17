@@ -157,11 +157,11 @@ has_permission = {
     "Driver Payment": "safarwaala.api.permission.has_driver_payment_permission",
 }
 
-doc_events = {
-	"OutStation Bookings": {
-		"after_insert": "safarwaala.api.booking.create_booking_master"
-	}
-}
+# doc_events = {
+# 	"OutStation Bookings": {
+# 		"after_insert": "safarwaala.api.booking.create_booking_master"
+# 	}
+# }
 
 # Scheduled Tasks
 # ---------------

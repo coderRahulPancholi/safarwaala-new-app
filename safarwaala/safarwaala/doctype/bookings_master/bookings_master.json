@@ -5,7 +5,7 @@
  "creation": "2025-04-13 19:34:18.607749",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": [
+  "field_order": [
   "details_section",
   "naming_series",
   "booking_status",
@@ -21,10 +21,16 @@
   "assignment_section",
   "assigned_to",
   "car_modal",
+  "car_model_name",
   "column_break_assign",
   "car",
+  "car_number",
   "driver",
+  "driver_name",
+  "driver_mobile",
   "trip_details_section",
+  "trip_type",
+  "package_type",
   "pickup_datetime",
   "pickup_location",
   "from_city",
@@ -424,6 +430,8 @@
    "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,
