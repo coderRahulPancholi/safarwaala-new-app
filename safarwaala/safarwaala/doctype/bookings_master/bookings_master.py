@@ -197,7 +197,7 @@ class BookingsMaster(Document):
             "invoice_date": nowdate(),
             "invoice_due_date": nowdate(),
             "invoice_item": [{
-                "booking_type": self.doctype, # 'Bookings Master'
+                # "booking_type" removed from schema
                 "booking_id": self.name,
                 "amount": self.grand_total,
                 "description": f"{self.booking_type} Booking Charges"
@@ -205,9 +205,16 @@ class BookingsMaster(Document):
             "gross_total": self.grand_total,
             "grand_total": self.grand_total,
             "paid_amount": customer_paid,
-            "payable_amount": self.grand_total - customer_paid
+            "payable_amount": self.grand_total - customer_paid,
+             # If we want to verify user/vendor, we might add 'vendor': self.assigned_to here if the schema expects it
+             "vendor": self.assigned_to 
         })
         invoice.insert(ignore_permissions=True)
+        
+        # Update Booking with Invoice details
+        self.db_set("booking_status", "Invoiced")
+        self.db_set("linked_invoice", invoice.name)
+        
         frappe.msgprint(_("Customer Invoice {0} created").format(invoice.name))
 
     def create_driver_payment(self):
@@ -239,6 +246,7 @@ class BookingsMaster(Document):
             "driver": self.driver,
             "vendor": vendor,
             "amount": total_pay,
+            "status": "Pending",
             "payment_date": nowdate(),
             "details": f"Allowance: {allowance}, Reimbursement: {reimbursement}"
         })

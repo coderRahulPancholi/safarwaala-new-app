@@ -24,16 +24,20 @@ class CustomerInvoice(Document):
     def before_submit(self):
         # Loop through each row in the bookings child table
         for booking_row in self.invoice_item:
-            if booking_row.booking_type and booking_row.booking_id:
+            if booking_row.booking_id:
                 try:
-                    booking = frappe.get_doc(booking_row.booking_type, booking_row.booking_id)
+                    # Logic updated: booking_type removed, always Bookings Master
+                    booking = frappe.get_doc("Bookings Master", booking_row.booking_id)
                     booking.booking_status = "Invoiced"
-                    booking.invoice = self.name
+                    booking.linked_invoice = self.name
                     booking.flags.ignore_permissions = True
                     booking.save()
+                    # Do not submit the booking here if it's already completed or if workflow differs.
+                    # Usually Invoicing happens AFTER completion. If not submitted, maybe submit?
+                    # Keeping existing logic check for now but safe to assume it might be submitted already.
                     if booking.docstatus == 0:
                         booking.submit()
                 except Exception as e:
                     frappe.log_error(f"Failed to update booking {booking_row.booking_id}: {e}")
             else:
-                frappe.log_error(f"Booking type or ID is missing for booking reference {booking_row.booking_id}")
+                frappe.log_error(f"Booking ID is missing for booking reference row")

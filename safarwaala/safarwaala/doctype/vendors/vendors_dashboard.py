@@ -13,7 +13,7 @@ def get_data(data=None):
 			},
             {
                 "label": _("Accounts"),
-                "items": ["Driver Payment"]
+                "items": ["Driver Payment", "Customer Invoice"]
             }
 		],
         "non_standard_fieldnames": {

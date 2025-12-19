@@ -11,6 +11,7 @@
         "naming_series",
         "section_break_bblp",
         "customer",
+        "vendor",
         "column_break_gvgi",
         "invoice_date",
         "invoice_due_date",
@@ -49,6 +50,12 @@
             "fieldtype": "Link",
             "label": "Customer",
             "options": "Customer"
+        },
+        {
+            "fieldname": "vendor",
+            "fieldtype": "Link",
+            "label": "Vendor",
+            "options": "Vendors"
         },
         {
             "fieldname": "column_break_gvgi",

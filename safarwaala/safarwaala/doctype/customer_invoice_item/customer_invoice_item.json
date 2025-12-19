@@ -6,25 +6,16 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "booking_type",
   "booking_id",
   "amount"
  ],
  "fields": [
   {
-   "fieldname": "booking_type",
+   "fieldname": "booking_id",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Booking Type",
-   "options": "DocType",
-   "reqd": 1
-  },
-  {
-   "fieldname": "booking_id",
-   "fieldtype": "Dynamic Link",
-   "in_list_view": 1,
    "label": "Booking Id",
-   "options": "booking_type"
+   "options": "Bookings Master"
   },
   {
    "fieldname": "amount",

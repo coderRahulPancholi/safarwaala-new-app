@@ -64,7 +64,8 @@
   "tax_and_charges",
   "totals_section",
   "tax_total",
-  "grand_total"
+  "grand_total",
+  "linked_invoice"
  ],
  "fields": [
   {
@@ -406,6 +407,13 @@
    "fieldname": "grand_total",
    "fieldtype": "Currency",
    "label": "Grand Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_invoice",
+   "fieldtype": "Link",
+   "label": "Linked Invoice",
+   "options": "Customer Invoice",
    "read_only": 1
   }
  ],
