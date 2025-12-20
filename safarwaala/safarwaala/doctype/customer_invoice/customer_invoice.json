@@ -25,7 +25,8 @@
   "grand_total",
   "paid_amount",
   "payable_amount",
-  "status"
+  "status",
+  "bank_account"
  ],
  "fields": [
   {
@@ -135,6 +136,12 @@
    "fieldname": "payable_amount",
    "fieldtype": "Currency",
    "label": "Payable Amount"
+  },
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "options": "Bank Account"
   }
  ],
  "grid_page_length": 50,

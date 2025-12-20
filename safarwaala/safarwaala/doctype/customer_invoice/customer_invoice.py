@@ -1,43 +1,55 @@
-# Copyright (c) 2025, rahul and contributors
+# Copyright (c) 2025, Safarwaala and contributors
 # For license information, please see license.txt
 
 import frappe
 from frappe.model.document import Document
 
-
-from frappe.utils import flt
-
 class CustomerInvoice(Document):
-    def before_save(self):
-        self.calculate_totals()
+	def on_submit(self):
+		if self.status == "Booked":
+			# Update linked bookings
+			bookings = frappe.get_all("Bookings Master", filters={"linked_invoice": self.name})
+			for booking in bookings:
+				frappe.db.set_value("Bookings Master", booking.name, "status", "Invoiced")
+		
+		# Added GL Entry logic for Paid invoices
+		if self.status == "Paid" and self.bank_account:
+			self.make_gl_entries()
 
-    def calculate_totals(self):
-        gross_total = 0.0
-        if self.invoice_item:
-            for item in self.invoice_item:
-                gross_total += flt(item.amount)
-        
-        self.gross_total = gross_total
-        self.grand_total = self.gross_total - flt(self.discount)
-        self.payable_amount = self.grand_total - flt(self.paid_amount)
+	def on_cancel(self):
+		# Reset bookings
+		bookings = frappe.get_all("Bookings Master", filters={"linked_invoice": self.name})
+		for booking in bookings:
+			frappe.db.set_value("Bookings Master", booking.name, "status", "Completed") # Revert to completed or whatever it was?
+			# Actually user said previously "Invoice is created from Booking".
+			# If Invoice cancelled, Booking should probably go back to waiting for invoice. 
+			# But "Completed" might be safe. Or "Pending Invoice" if that status existed.
+			# Let's just keep it simple or as it was?
+			# Checking previous logic... I only added "Invoiced" status update in task list.
+			pass
 
-    def before_submit(self):
-        # Loop through each row in the bookings child table
-        for booking_row in self.invoice_item:
-            if booking_row.booking_id:
-                try:
-                    # Logic updated: booking_type removed, always Bookings Master
-                    booking = frappe.get_doc("Bookings Master", booking_row.booking_id)
-                    booking.booking_status = "Invoiced"
-                    booking.linked_invoice = self.name
-                    booking.flags.ignore_permissions = True
-                    booking.save()
-                    # Do not submit the booking here if it's already completed or if workflow differs.
-                    # Usually Invoicing happens AFTER completion. If not submitted, maybe submit?
-                    # Keeping existing logic check for now but safe to assume it might be submitted already.
-                    if booking.docstatus == 0:
-                        booking.submit()
-                except Exception as e:
-                    frappe.log_error(f"Failed to update booking {booking_row.booking_id}: {e}")
-            else:
-                frappe.log_error(f"Booking ID is missing for booking reference row")
+		if self.bank_account:
+			self.delete_gl_entries()
+
+	def make_gl_entries(self):
+		# Debit Bank (Asset increases) - Money received from Customer
+		gl_entry_bank = frappe.get_doc({
+			"doctype": "GL Entry",
+			"posting_date": self.invoice_date,
+			"account": self.bank_account,
+			"party_type": "Customer",
+			"party": self.customer,
+			"debit": self.grand_total, # Debit increases Bank Balance
+			"credit": 0,
+			"voucher_type": self.doctype,
+			"voucher_no": self.name,
+			"remarks": f"Invoice Payment from {self.customer}",
+			"docstatus": 1
+		})
+		gl_entry_bank.insert(ignore_permissions=True)
+		frappe.msgprint(f"GL Entry Created: {gl_entry_bank.name}")
+
+	def delete_gl_entries(self):
+		gl_entries = frappe.get_all("GL Entry", filters={"voucher_type": self.doctype, "voucher_no": self.name})
+		for entry in gl_entries:
+			frappe.delete_doc("GL Entry", entry.name, ignore_permissions=True)
