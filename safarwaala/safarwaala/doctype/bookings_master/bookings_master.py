@@ -176,7 +176,10 @@ class BookingsMaster(Document):
         expenses = frappe.db.get_list('Vehicle Expense Log', 
                                       filters={'booking_ref': self.name, 'docstatus': 0})
         for expense in expenses:
-            frappe.get_doc("Vehicle Expense Log", expense.name).submit()
+            expense.status = "Approved"
+            expense.docstatus = 1
+            expense.save(ignore_permissions=True)
+            # frappe.get_doc("Vehicle Expense Log", expense.name).submit()
 
     def create_customer_invoice(self):
         if frappe.db.exists("Customer Invoice", {"booking_id": self.name}):

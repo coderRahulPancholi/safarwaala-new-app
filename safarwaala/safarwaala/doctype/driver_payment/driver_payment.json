@@ -125,8 +125,11 @@
    "write": 1
   },
   {
+   "create": 1,
    "read": 1,
-   "role": "Vendor"
+   "role": "Vendor",
+   "submit": 1,
+   "write": 1
   },
   {
    "read": 1,
