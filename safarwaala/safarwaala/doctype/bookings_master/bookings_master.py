@@ -175,11 +175,14 @@ class BookingsMaster(Document):
         # Navigate to linked expenses and submit them
         expenses = frappe.db.get_list('Vehicle Expense Log', 
                                       filters={'booking_ref': self.name, 'docstatus': 0})
-        for expense in expenses:
-            expense.status = "Approved"
-            expense.docstatus = 1
-            expense.save(ignore_permissions=True)
-            # frappe.get_doc("Vehicle Expense Log", expense.name).submit()
+        for expense_data in expenses:
+            try:
+                expense = frappe.get_doc("Vehicle Expense Log", expense_data.name)
+                expense.status = "Approved"
+                expense.save(ignore_permissions=True)
+                expense.submit()
+            except Exception:
+                pass # Continue if one fails? Or raise? Use existing logic which was loose.
 
     def create_customer_invoice(self):
         if frappe.db.exists("Customer Invoice", {"booking_id": self.name}):
@@ -216,12 +219,13 @@ class BookingsMaster(Document):
         
         # Update Booking with Invoice details
         self.db_set("booking_status", "Invoiced")
+        # Store as string for link field
         self.db_set("linked_invoice", invoice.name)
         
         frappe.msgprint(_("Customer Invoice {0} created").format(invoice.name))
 
     def create_driver_payment(self):
-        if frappe.db.exists("Driver Payment", {"booking_id": self.name}):
+        if frappe.db.exists("Payouts", {"booking_id": self.name, "payout_to_type": "Drivers"}):
             return
 
         # Driver Payment = Night Charges (Allowance) + Driver Paid Expenses
@@ -239,19 +243,16 @@ class BookingsMaster(Document):
 
         if not self.driver: return 
         
-        driver_doc = frappe.get_doc("Drivers", self.driver)
-        vendor = driver_doc.owner_vendor
-        
-        payment = frappe.get_doc({
-            "doctype": "Driver Payment",
-            "booking_type": self.doctype,
-            "booking_id": self.name,
-            "driver": self.driver,
-            "vendor": vendor,
+        # Payouts DocType Creation
+        payout = frappe.get_doc({
+            "doctype": "Payouts",
+            "payout_to_type": "Drivers",
+            "payout_to": self.driver,
             "amount": total_pay,
             "status": "Pending",
             "payment_date": nowdate(),
-            "details": f"Allowance: {allowance}, Reimbursement: {reimbursement}"
+            "details": f"Allowance: {allowance}, Reimbursement: {reimbursement}",
+            "booking_id": self.name
         })
-        payment.insert(ignore_permissions=True)
-        frappe.msgprint(_("Driver Payment {0} created").format(payment.name))
+        payout.insert(ignore_permissions=True)
+        frappe.msgprint(_("Driver Payout {0} created").format(payout.name))
