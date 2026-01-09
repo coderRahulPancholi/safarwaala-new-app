@@ -1,106 +1,121 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "autoname": "naming_series:",
-    "creation": "2025-04-14 16:28:50.954904",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "naming_series",
-        "section_break_zjon",
-        "name1",
-        "column_break_mqai",
-        "mobile",
-        "section_break_kvmr",
-        "owner_vendor",
-        "column_break_uoxc",
-        "linked_user"
-    ],
-    "fields": [
-        {
-            "fieldname": "name1",
-            "fieldtype": "Data",
-            "label": "Name"
-        },
-        {
-            "fieldname": "column_break_mqai",
-            "fieldtype": "Column Break"
-        },
-        {
-            "fieldname": "mobile",
-            "fieldtype": "Data",
-            "label": "Mobile"
-        },
-        {
-            "fieldname": "section_break_kvmr",
-            "fieldtype": "Section Break"
-        },
-        {
-            "fieldname": "owner_vendor",
-            "fieldtype": "Link",
-            "label": "Owner (vendor)",
-            "options": "Vendors"
-        },
-        {
-            "default": "0",
-            "fieldname": "disabled",
-            "fieldtype": "Check",
-            "label": "Disabled"
-        },
-        {
-            "fieldname": "column_break_uoxc",
-            "fieldtype": "Column Break"
-        },
-        {
-            "fieldname": "linked_user",
-            "fieldtype": "Link",
-            "label": "Linked User",
-            "options": "User"
-        },
-        {
-            "fieldname": "naming_series",
-            "fieldtype": "Select",
-            "label": "Series",
-            "options": "DRI-.###"
-        },
-        {
-            "fieldname": "section_break_zjon",
-            "fieldtype": "Section Break"
-        }
-    ],
-    "grid_page_length": 50,
-    "index_web_pages_for_search": 1,
-    "links": [],
-    "modified": "2025-04-14 23:24:16.028073",
-    "modified_by": "Administrator",
-    "module": "Safarwaala",
-    "name": "Drivers",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Vendor",
-            "write": 1
-        }
-    ],
-    "row_format": "Dynamic",
-    "search_fields": "name1,mobile",
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": []
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-04-14 16:28:50.954904",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "section_break_zjon",
+  "name1",
+  "column_break_mqai",
+  "mobile",
+  "email",
+  "section_break_kvmr",
+  "owner_vendor",
+  "create_user",
+  "column_break_uoxc",
+  "linked_user",
+  "disabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "name1",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "column_break_mqai",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Data",
+   "label": "Mobile"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "section_break_kvmr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "owner_vendor",
+   "fieldtype": "Link",
+   "label": "Owner (vendor)",
+   "options": "Vendors"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_uoxc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "linked_user",
+   "fieldtype": "Link",
+   "label": "Linked User",
+   "options": "User"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "DRI-.###"
+  },
+  {
+   "fieldname": "section_break_zjon",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "create_user",
+   "fieldtype": "Check",
+   "label": "Create User"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-09 20:47:13.768037",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Drivers",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Vendor",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "name1,mobile",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }
