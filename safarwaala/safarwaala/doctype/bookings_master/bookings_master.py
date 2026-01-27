@@ -28,7 +28,7 @@ class BookingsMaster(Document):
         # Fetch rates from Car Modal if missing
         if self.car_modal:
             car = frappe.get_doc("Car Modals", self.car_modal)
-            if self.booking_type == "Local":
+            if self.booking_type in ["Local", "Fixed"]:
                 if not self.min_hours: self.min_hours = car.min_local_hour
                 if not self.min_km: self.min_km = car.min_local_km
                 if not self.per_hour_rate: self.per_hour_rate = car.local_hour_rate
@@ -41,7 +41,7 @@ class BookingsMaster(Document):
                 # Store it in a temporary attribute if needed or use directly
                 self._min_km_day = car.min_km_day
 
-        if self.booking_type == "Local":
+        if self.booking_type in ["Local", "Fixed"]:
             self.calculate_local_charges()
         elif self.booking_type == "Outstation":
             self.calculate_outstation_charges()
@@ -157,14 +157,18 @@ class BookingsMaster(Document):
         
         term_total = flt(self.base_amount) + flt(self.night_charges)
         
-        if self.booking_type == "Local":
+        if self.booking_type in ["Local", "Fixed"]:
             term_total += flt(self.extra_hour_charges) + flt(self.extra_km_charges)
             
         # Grand Total = Terms + Billable Expenses + Taxes
         # (Assuming Driver paid non-billable expenses are NOT charged to customer, 
         # but Billable ones ARE, regardless of who paid (if driver paid billable, we reimburse driver AND charge customer))
         
-        self.grand_total = term_total + flt(self.billable_expense_total) + flt(self.tax_total)
+        calculated_grand = term_total + flt(self.billable_expense_total) + flt(self.tax_total)
+        
+        # Only overwrite grand_total if NOT Fixed (or if it's missing)
+        if self.booking_type != "Fixed":
+            self.grand_total = calculated_grand
 
     def on_submit(self):
         self.submit_expenses()

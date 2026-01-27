@@ -92,7 +92,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Booking Type",
-   "options": "Local\nOutstation\nRoutine",
+   "options": "Local\nOutstation\nRoutine\nFixed",
    "reqd": 1
   },
   {
@@ -406,8 +406,7 @@
   {
    "fieldname": "grand_total",
    "fieldtype": "Currency",
-   "label": "Grand Total",
-   "read_only": 1
+   "label": "Grand Total"
   },
   {
    "fieldname": "linked_invoice",

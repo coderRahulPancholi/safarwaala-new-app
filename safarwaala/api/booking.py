@@ -141,14 +141,18 @@ def get_booking_details(doctype, name):
              details["car_modal_details"]["name"] = details["car_modal_details"].pop("modal_name")
 
     # Fetch Financials
-    if doc.get("invoice"):
-        details["invoice_details"] = frappe.db.get_value("Customer Invoice", doc.get("invoice"), ["name", "grand_total", "paid_amount", "payable_amount", "status", "docstatus"], as_dict=True)
+    invoice_ref = doc.get("invoice") or doc.get("linked_invoice")
+    if invoice_ref:
+        details["invoice_details"] = frappe.db.get_value("Customer Invoice", invoice_ref, ["name", "grand_total", "paid_amount", "payable_amount", "status", "docstatus"], as_dict=True)
 
-    payment_name = frappe.db.get_value("Driver Payment", {"booking_id": name}, "name")
+    payment_name = frappe.db.get_value("Payouts", {"booking_id": name}, "name")
     if payment_name:
-        pay_fields = frappe.db.get_value("Driver Payment", payment_name, ["name", "amount", "docstatus", "payment_date"], as_dict=True)
+        pay_fields = frappe.db.get_value("Payouts", payment_name, ["name", "amount", "docstatus", "payment_date", "status"], as_dict=True)
         if pay_fields:
-            pay_fields["status"] = "Draft" if pay_fields.docstatus == 0 else "Submitted"
+            # Payouts has 'status' field (Pending/Paid), usage differs from standard docstatus flow slightly but 
+            # let's trust the 'status' field or docstatus.
+            # pay_fields["status"] = "Draft" if pay_fields.docstatus == 0 else "Submitted" # Old logic
+            # New logic: Payouts has explicit status field.
             details["driver_payment_details"] = pay_fields
         
         details["driver_payment"] = payment_name
@@ -447,15 +451,18 @@ def get_dashboard_stats():
             stats["active_drivers"] = frappe.db.count("Drivers", filters=driver_filters)
             stats["total_vehicles"] = frappe.db.count("Cars", filters=car_filters)
             
-            # Pending Payments (Driver Payments) - Using docstatus=0 (Draft) as Pending
-            # We can use get_value with sum function, but filters dict is easier via get_list/sql if complex
+            # Pending Payments (Driver Payments) - Using Payouts table
+            # Filter: Status 'Pending', and Driver belongs to this Vendor
             if vendor_name:
                  pending_sql = frappe.db.sql("""
-                    SELECT SUM(amount) FROM `tabDriver Payment` WHERE docstatus = 0 AND vendor = %s
+                    SELECT SUM(p.amount) 
+                    FROM `tabPayouts` p
+                    JOIN `tabDrivers` d ON p.payout_to = d.name
+                    WHERE p.status = 'Pending' AND d.owner_vendor = %s
                 """, (vendor_name,))
             else:
                  pending_sql = frappe.db.sql("""
-                    SELECT SUM(amount) FROM `tabDriver Payment` WHERE docstatus = 0
+                    SELECT SUM(amount) FROM `tabPayouts` WHERE status = 'Pending'
                 """)
             stats["pending_payments"] = pending_sql[0][0] if pending_sql and pending_sql[0][0] else 0
 
@@ -480,9 +487,9 @@ def get_dashboard_stats():
             if driver_doc_name:
                 stats["upcoming_trips"] = frappe.db.count("OutStation Bookings", filters={"driver": driver_doc_name, "booking_status": "Confirmed"})
                 
-                # Driver Earnings - Using docstatus=1 (Submitted) as Paid
+                # Driver Earnings - Using Payouts
                 driver_earnings_sql = frappe.db.sql("""
-                    SELECT SUM(amount) FROM `tabDriver Payment` WHERE driver = %s AND docstatus = 1
+                    SELECT SUM(amount) FROM `tabPayouts` WHERE payout_to = %s AND status = 'Paid'
                 """, (driver_doc_name,))
                 stats["driver_earnings"] = driver_earnings_sql[0][0] if driver_earnings_sql and driver_earnings_sql[0][0] else 0
                 
