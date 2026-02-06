@@ -243,6 +243,11 @@
    "options": "City Master"
   },
   {
+   "fieldname": "trip_plan_text",
+   "fieldtype": "Text Editor",
+   "label": "Trip Plan Details"
+  },
+  {
    "fieldname": "column_break_trip",
    "fieldtype": "Column Break"
   },
