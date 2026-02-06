@@ -228,8 +228,7 @@
    "fieldname": "pickup_datetime",
    "fieldtype": "Datetime",
    "in_list_view": 1,
-   "label": "Pickup Date/Time",
-   "reqd": 1
+   "label": "Pickup Date/Time"
   },
   {
    "fieldname": "pickup_location",
@@ -420,7 +419,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-17 22:24:40.713299",
+ "modified": "2026-02-06 21:26:47.442588",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "Bookings Master",
