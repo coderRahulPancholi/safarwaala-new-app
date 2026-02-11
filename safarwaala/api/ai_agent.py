@@ -46,6 +46,32 @@ def find_best_match_car(user_query, passengers=1):
 
 # --- 2. Tool Logic (Actual Python Functions) ---
 
+def get_available_cars(passengers=1, category=None):
+    """Fetches available car models based on passengers and optional category."""
+    try:
+        pax = int(passengers) if passengers else 1
+        filters = {"seating_capacity": [">=", pax]}
+        
+        if category:
+            if category.lower() in ["sedan", "suv", "hatchback", "luxury"]:
+                 filters["category"] = category.capitalize()
+            elif category.lower() in ["innova", "ertiga"]:
+                 filters["modal_name"] = ["like", f"%{category}%"]
+
+        cars = frappe.get_all("Car Modals", 
+            fields=["name", "modal_name", "category", "seating_capacity", "per_km_rate", "fuel_type", "transmission"],
+            filters=filters,
+            order_by="per_km_rate asc"
+        )
+        
+        return json.dumps({
+            "success": True, 
+            "cars": cars,
+            "message": f"Here are the available cars for {pax} passengers."
+        })
+    except Exception as e:
+        return json.dumps({"success": False, "error": str(e)})
+
 def estimate_trip_cost(days, passengers=1, from_city=None, to_city=None):
     """Calculates approximate Round Trip cost for Sedan and SUV."""
     try:
@@ -272,6 +298,20 @@ TOOLS_SCHEMA = [
                 "required": ["days"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_available_cars",
+            "description": "Fetch available car models/categories when user asks to see cars or choices.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "passengers": {"type": "integer", "description": "Number of passengers (default 1)"},
+                    "category": {"type": "string", "description": "Optional category filter (Sedan, SUV, etc.)"}
+                }
+            }
+        }
     }
 ]
 
@@ -302,43 +342,43 @@ def chat_agent(message, history=None, customer_id=None):
         # C. System Prompt (Persona & Instructions)
         system_msg = {
             "role": "system", 
-            "content": f"""You are **SafarBot**, an intelligent, polite, and culturally aware travel assistant for **Safarwaala** in India. Date: {nowdate()}.
+            "content": f"""You are **SafarBot**, an intelligent, proactive, and culturally aware travel assistant for **Safarwaala** in India. Date: {nowdate()}.
             
             **User Context**:
             {customer_ctx}
             
             **Persona**:
-            - **Tone**: Warm, helpful, professional, and Indian-friendly (e.g., use "Namaste", "Ji" occasionally for politeness if fits).
-            - **Greeting**: Always address the user by Name ({user_name}) if known.
-            - **Style**: Use rich Markdown (**Bold** for emphasis, lists for clarity, Emojis 🚗✨ for engagement).
+            - **Tone**: Professional yet warm (Use "Namaste", "Ji" sparingly).
+            - **Style**: Direct and Efficient. Avoid small talk if the user has a specific request.
             
-            **Capabilities & Rules**:
+            **CRITICAL RULE: ONE-SHOT ACTION**
+            - **IF** the user provides ALL required parameters for a tool in their message, **CALL THE TOOL IMMEDIATELY**.
+            - **DO NOT** ask for confirmation (e.g., "Shall I book this?"). JUST BOOK IT.
+            - **DO NOT** ask for details that are already provided or can be reasonably inferred (e.g., if user says "Delhi to Agra", assume "Delhi" is origin).
             
-            1. **Booking (Logged-in Only)**:
-               - **Mandatory**: User MUST specify a Car (Sedan, SUV, Innova).
-               - If missing: Ask politely: *"Which vehicle would you prefer, {user_name}? We have Sedan, SUV, and Innova."*
-               - **Saving Plan**: If you just generated a Trip Plan (itinerary), you MUST pass a summary of it to the `plan_summary` argument in `create_booking`.
-               - Once specified: Call `create_booking`. 
-               - If tool returns a **Fallback** message (Lead created), apologize and inform the user warmly.
+            **Capabilities & Logic**:
+            
+            1. **Booking (Logged-in User)**:
+               - **Goal**: Call `create_booking`.
+               - **Required**: `pickup_from`, `to_city`, `passengers` (default 1), `user_car_choice` (Sedan/SUV/Innova/etc).
+               - **Logic**: 
+                 - If `user_car_choice` is missing/ambiguous, **CALL `get_available_cars`** to show options.
+                 - If all details present -> **CALL TOOL**.
                
-            2. **Booking (Guest ONLY)**:
-               - Ask Name & Mobile -> Call `create_lead`.
-               - **WARNING**: Do NOT call `create_lead` if user just asks for a "Plan" or "Itinerary". ONLY call if they want to BOOK or INQUIRE.
+            2. **Lead/Inquiry (Guest/New User)**:
+               - **Goal**: Call `create_lead`.
+               - **Required**: `first_name`, `mobile_no`, `from_city`, `to_city`.
+               - **Logic**:
+                 - **Smart Extraction**: If user says "I am Rahul 9876543210 need cab Delhi to Jaipur", EXTRACT Name=Rahul, Mobile=9876543210... and **CALL TOOL IMMEDIATELY**.
+                 - **Incomplete**: Only ask for MISSING details.
+                 - **Trip Planning**: If user just asks for "Plan/Itinerary" without intent to book, **DO NOT** call tool. Just generate text plan.
                
-            3. **Cost Estimates**:
-               - If asked "How much?"/ "Price?", use `estimate_trip_cost`. 
-               - **Always** assume Round Trip logic.
-               
-            4. **Trip Planning (Strict Text Only)**:
-               - If user asks for a plan ("Plan a trip to X", "Itinerary for Y"):
-               - **DO NOT CALL ANY TOOLS.**
-               - **DO NOT** call `create_lead`.
-               - **JUST WRITE THE TEXT PLAN.**
-               - **Format**: Structured Markdown Plan.
-                 **🗺️ Trip to [Location]**
-                 ...
-                 **Summary**
-                 - 🚗 Recommended: [Sedan/SUV]
+            3. **Estimates/Car Info**:
+               - If user asks "Price?" or "Cost?", use `estimate_trip_cost`.
+               - If user asks "What cars do you have?" or "Show me options", use `get_available_cars`.
+            
+            4. **General Q&A**:
+               - Keep answers concise. 
             """
         }
 
@@ -346,9 +386,14 @@ def chat_agent(message, history=None, customer_id=None):
         if not history: history = []
         if isinstance(history, str): history = json.loads(history)
         
-        messages = [system_msg]
+        # Sanitize history to ensure 'role' is valid
+        sanitized_history = []
         for msg in history:
-            messages.append({"role": msg.get("role"), "content": msg.get("content")})
+            role = msg.get("role")
+            if role in ["user", "assistant", "system", "tool"]:
+                sanitized_history.append({"role": role, "content": msg.get("content")})
+        
+        messages = [system_msg] + sanitized_history
         messages.append({"role": "user", "content": message})
 
         # E. Main Loop
@@ -361,6 +406,7 @@ def chat_agent(message, history=None, customer_id=None):
         response_message = response.choices[0].message
         tool_calls = response_message.tool_calls
         trip_plan_data = None 
+        car_options_data = None
 
         if tool_calls:
             # Serialize
@@ -381,6 +427,15 @@ def chat_agent(message, history=None, customer_id=None):
                     tool_res = create_lead(**fn_args)
                 elif fn_name == "estimate_trip_cost":
                     tool_res = estimate_trip_cost(**fn_args)
+                elif fn_name == "get_available_cars":
+                    tool_res_json = get_available_cars(**fn_args)
+                    tool_res = tool_res_json
+                    # Capture car data to send to UI
+                    try:
+                        res_dict = json.loads(tool_res_json)
+                        if res_dict.get("success") and res_dict.get("cars"):
+                            car_options_data = res_dict.get("cars")
+                    except: pass
 
                 messages.append({"tool_call_id": tool_call.id, "role": "tool", "name": fn_name, "content": tool_res})
 
@@ -392,7 +447,8 @@ def chat_agent(message, history=None, customer_id=None):
         return {
             "role": "assistant",
             "content": final_content,
-            "tripPlan": trip_plan_data 
+            "tripPlan": trip_plan_data,
+            "carOptions": car_options_data
         }
 
     except Exception as e:
