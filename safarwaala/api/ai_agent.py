@@ -283,7 +283,10 @@ def chat_agent(message, history=None, customer_id=None):
         # A. Setup Client
         api_key = frappe.conf.get("OPENROUTER_API_KEY") or "sk-or-v1-key"
         client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
-        MODEL_NAME = "google/gemini-2.0-flash-001" 
+        # MODEL_NAME = "google/gemini-2.0-flash-001" 
+        # MODEL_NAME = "arcee-ai/trinity-large-preview:free" 
+        # MODEL_NAME = "openrouter/pony-alpha" 
+        MODEL_NAME = "openrouter/aurora-alpha" 
 
         # B. Get Customer Context
         customer_ctx = ""
