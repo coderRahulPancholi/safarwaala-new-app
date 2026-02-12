@@ -119,16 +119,29 @@ frappe.ui.form.on("Bookings Master", {
     per_hour_rate(frm) { calculate_charges(frm); },
     per_km_rate(frm) { calculate_charges(frm); },
     min_hours(frm) { calculate_charges(frm); },
-    min_km(frm) { calculate_charges(frm); },
     night_rate(frm) { calculate_charges(frm); },
-    night_charges(frm) { calculate_charges(frm); } // if manual edit
+
+    // These fields are SET by calculate_charges, so they must NOT
+    // call calculate_charges again (infinite loop). Only recalc totals.
+    min_km(frm) {
+        if (!frm._calculating) update_totals_from_current(frm);
+    },
+    night_charges(frm) {
+        if (!frm._calculating) update_totals_from_current(frm);
+    }
 });
 
 function calculate_charges(frm) {
-    if (frm.doc.booking_type === "Local") {
-        calculate_local(frm);
-    } else if (frm.doc.booking_type === "Outstation") {
-        calculate_outstation(frm);
+    if (frm._calculating) return; // re-entry guard
+    frm._calculating = true;
+    try {
+        if (frm.doc.booking_type === "Local") {
+            calculate_local(frm);
+        } else if (frm.doc.booking_type === "Outstation") {
+            calculate_outstation(frm);
+        }
+    } finally {
+        frm._calculating = false;
     }
 }
 
@@ -220,6 +233,15 @@ function calculate_outstation(frm) {
     frm.set_value("extra_hour_charges", 0);
 
     update_totals(frm, base_amount);
+}
+
+// Lightweight recalc when user manually edits min_km or night_charges
+// (avoids the full calculate_charges path that would set those same fields)
+function update_totals_from_current(frm) {
+    const base = frm.doc.base_amount || 0;
+    const extra_km = frm.doc.extra_km_charges || 0;
+    const extra_hr = frm.doc.extra_hour_charges || 0;
+    update_totals(frm, base + extra_km + extra_hr);
 }
 
 function update_totals(frm, partial_total) {
