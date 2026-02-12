@@ -76,26 +76,20 @@ def get_my_bookings():
     if customer:
         filters.append(f"customer = '{customer}'")
     if vendor:
-        # Assuming 'vendor' field exists in Bookings Master, NOT assigned_to.
-        # Checking schema previously... wait, let me check schema quickly or assume standard.
-        # Actually Bookings Master likely has specific fields. Let's assume vendor field name is 'vendor' or check.
-        # Based on previous turns, it was likely linked to vendor via 'vendor' field?
-        # Let's check permissions or just use 'vendor' field if correct.
-        # Actually, looking at previous edits, Bookings Master does NOT use assigned_to, it uses 'vendor'.
-        filters.append(f"vendor = '{vendor}'")
+        filters.append(f"assigned_to = '{vendor}'")
     
     if not filters:
         return []
 
-    where_clause = " OR ".join(filters) # Wait, should be OR? No, a user is usually ONE role. But if they are multiple, OR is fine.
-    
-    # Actually, usually a session user is one person. But let's keep OR if they match multiple roles.
+    where_clause = " OR ".join(filters)
 
     bookings = frappe.db.sql(f"""
         SELECT 
-            name, booking_status, DATE_FORMAT(pickup_datetime, '%Y-%m-%d %H:%i:%s') as departure_datetime, creation, 
-            pickup_location as start_from, drop_location as `to`, grand_total, 
-            customer_name, booking_type as type, booking_status as status
+            name, booking_status, booking_type,
+            DATE_FORMAT(pickup_datetime, '%%Y-%%m-%%d %%H:%%i:%%s') as pickup_datetime,
+            pickup_location, drop_location, from_city, to_city,
+            grand_total, customer_name, car_model_name,
+            trip_type, creation
         FROM `tabBookings Master`
         WHERE {where_clause}
         ORDER BY creation DESC
@@ -485,7 +479,7 @@ def get_dashboard_stats():
             # Driver Stats
             driver_doc_name = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
             if driver_doc_name:
-                stats["upcoming_trips"] = frappe.db.count("OutStation Bookings", filters={"driver": driver_doc_name, "booking_status": "Confirmed"})
+                stats["upcoming_trips"] = frappe.db.count("Bookings Master", filters={"driver": driver_doc_name, "booking_status": "Confirmed"})
                 
                 # Driver Earnings - Using Payouts
                 driver_earnings_sql = frappe.db.sql("""
