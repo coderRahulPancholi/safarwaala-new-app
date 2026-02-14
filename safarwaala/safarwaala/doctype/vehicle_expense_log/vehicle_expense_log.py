@@ -16,6 +16,8 @@ class VehicleExpenseLog(Document):
         self.update_booking_total()
 
     def update_booking_total(self):
-        if self.booking_type == "OutStation Bookings" and self.booking_ref:
-            booking = frappe.get_doc("OutStation Bookings", self.booking_ref)
+        # We rely on booking_ref being the name of the Bookings Master
+        if self.booking_ref and frappe.db.exists("Bookings Master", self.booking_ref):
+            booking = frappe.get_doc("Bookings Master", self.booking_ref)
+            # Saving triggers validate() -> calculate_expenses() -> calculate_totals()
             booking.save(ignore_permissions=True)

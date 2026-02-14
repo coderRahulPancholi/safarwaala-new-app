@@ -8,6 +8,10 @@ def get_user_profile():
     
     user_doc = frappe.get_doc("User", user)
     
+    # Fetch linked documents
+    vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+    driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
+
     return {
         "name": user_doc.name,
         "full_name": user_doc.full_name,
@@ -19,6 +23,8 @@ def get_user_profile():
         "birth_date": user_doc.birth_date,
         "user_image": user_doc.user_image,
         "role": user_doc.role_profile_name,
+        "vendor_id": vendor,
+        "driver_id": driver,
         "customer_details": frappe.db.get_value("Customer", {"linked_user": user}, ["name", "name1", "mobile", "email", "type"], as_dict=True)
     }
 # path = "safarwaala.api.user.get_user_profile"   

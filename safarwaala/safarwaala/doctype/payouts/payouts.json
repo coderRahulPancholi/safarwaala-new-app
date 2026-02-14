@@ -1,0 +1,175 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-12-20 11:35:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "payout_details_section",
+  "payout_to_type",
+  "payout_to",
+  "amount",
+  "bank_account",
+  "column_break_1",
+  "payment_date",
+  "status",
+  "payment_type",
+  "reference_section",
+  "booking_id",
+  "vendor",
+  "driver",
+  "column_break_2",
+  "details",
+  "naming_series",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "payout_details_section",
+   "fieldtype": "Section Break",
+   "label": "Payout Details"
+  },
+  {
+   "fieldname": "payout_to_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payout To Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payout_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Payout To",
+   "options": "payout_to_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "options": "Bank Account"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "label": "Payment Date",
+   "reqd": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nPaid\nCancelled"
+  },
+  {
+   "fieldname": "payment_type",
+   "fieldtype": "Select",
+   "label": "Payment Type",
+   "options": "Cash\nOnline\nBank Transfer\nCheque"
+  },
+  {
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference & Remarks"
+  },
+  {
+   "fieldname": "booking_id",
+   "fieldtype": "Link",
+   "label": "Booking Reference",
+   "options": "Bookings Master"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "Small Text",
+   "label": "Details"
+  },
+  {
+   "default": "PAYOUT-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "options": "PAYOUT-.YYYY.-.#####"
+  },
+  {
+   "fetch_from": "booking_id.assigned_to",
+   "fetch_if_empty": 1,
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "Vendors"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Payouts",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "booking_id.driver",
+   "fetch_if_empty": 1,
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "Drivers"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-12-20 12:51:28.440816",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Payouts",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Vendor",
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

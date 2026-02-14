@@ -9,6 +9,8 @@
   "driver",
   "vendor",
   "amount",
+  "status",
+  "payment_type",
   "payment_date",
   "details",
   "booking_type",
@@ -63,6 +65,20 @@
    "reqd": 1
   },
   {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nPaid\nCancelled"
+  },
+  {
+   "fieldname": "payment_type",
+   "fieldtype": "Select",
+   "label": "Payment Type",
+   "options": "Cash\nOnline\nBank Transfer\nCheque"
+  },
+  {
    "default": "Today",
    "fieldname": "payment_date",
    "fieldtype": "Date",
@@ -109,8 +125,11 @@
    "write": 1
   },
   {
+   "create": 1,
    "read": 1,
-   "role": "Vendor"
+   "role": "Vendor",
+   "submit": 1,
+   "write": 1
   },
   {
    "read": 1,

@@ -1,170 +1,181 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "autoname": "naming_series:",
-    "creation": "2025-04-17 18:59:45.302651",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "section_break_oy0n",
-        "amended_from",
-        "naming_series",
-        "section_break_bblp",
-        "customer",
-        "column_break_gvgi",
-        "invoice_date",
-        "invoice_due_date",
-        "section_break_jpzy",
-        "invoice_item",
-        "section_break_lfvp",
-        "column_break_iffd",
-        "column_break_ylzd",
-        "gross_total",
-        "discount",
-        "grand_total",
-        "paid_amount",
-        "payable_amount"
-    ],
-    "fields": [
-        {
-            "fieldname": "section_break_oy0n",
-            "fieldtype": "Section Break"
-        },
-        {
-            "fieldname": "amended_from",
-            "fieldtype": "Link",
-            "label": "Amended From",
-            "no_copy": 1,
-            "options": "Customer Invoice",
-            "print_hide": 1,
-            "read_only": 1,
-            "search_index": 1
-        },
-        {
-            "fieldname": "section_break_bblp",
-            "fieldtype": "Section Break"
-        },
-        {
-            "fieldname": "customer",
-            "fieldtype": "Link",
-            "label": "Customer",
-            "options": "Customer"
-        },
-        {
-            "fieldname": "column_break_gvgi",
-            "fieldtype": "Column Break"
-        },
-        {
-            "fieldname": "section_break_jpzy",
-            "fieldtype": "Section Break"
-        },
-        {
-            "fieldname": "invoice_item",
-            "fieldtype": "Table",
-            "label": "Invoice Item",
-            "options": "Customer Invoice Item"
-        },
-        {
-            "fieldname": "section_break_lfvp",
-            "fieldtype": "Section Break"
-        },
-        {
-            "fieldname": "grand_total",
-            "fieldtype": "Currency",
-            "label": "Grand Total",
-            "precision": "2"
-        },
-        {
-            "default": "INVC-.MM.-.YY.-.###",
-            "fieldname": "naming_series",
-            "fieldtype": "Select",
-            "label": "Naming Series",
-            "options": "INVC-.MM.-.YY.-.###"
-        },
-        {
-            "fieldname": "gross_total",
-            "fieldtype": "Currency",
-            "label": "Gross Total",
-            "precision": "2"
-        },
-        {
-            "fieldname": "discount",
-            "fieldtype": "Currency",
-            "label": "Discount",
-            "precision": "2"
-        },
-        {
-            "fieldname": "invoice_date",
-            "fieldtype": "Date",
-            "label": "Invoice Date"
-        },
-        {
-            "fieldname": "invoice_due_date",
-            "fieldtype": "Date",
-            "label": "Invoice Due Date"
-        },
-        {
-            "fieldname": "column_break_iffd",
-            "fieldtype": "Column Break"
-        },
-        {
-            "fieldname": "column_break_ylzd",
-            "fieldtype": "Column Break"
-        },
-        {
-            "default": "Unpaid",
-            "fieldname": "status",
-            "fieldtype": "Select",
-            "label": "Status",
-            "options": "Unpaid\nPaid\nOverdue\nCancelled"
-        },
-        {
-            "fieldname": "paid_amount",
-            "fieldtype": "Currency",
-            "label": "Paid Amount"
-        },
-        {
-            "fieldname": "payable_amount",
-            "fieldtype": "Currency",
-            "label": "Payable Amount"
-        }
-    ],
-    "grid_page_length": 50,
-    "index_web_pages_for_search": 1,
-    "is_submittable": 1,
-    "links": [
-        {
-            "link_doctype": "OutStation Bookings",
-            "link_fieldname": "invoice"
-        },
-        {
-            "link_doctype": "Routine Bookings",
-            "link_fieldname": "invoice"
-        }
-    ],
-    "modified": "2025-05-16 17:15:15.325485",
-    "modified_by": "Administrator",
-    "module": "Safarwaala",
-    "name": "Customer Invoice",
-    "naming_rule": "By \"Naming Series\" field",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "submit": 1,
-            "write": 1
-        }
-    ],
-    "row_format": "Dynamic",
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": []
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-04-17 18:59:45.302651",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_oy0n",
+  "amended_from",
+  "naming_series",
+  "section_break_bblp",
+  "customer",
+  "vendor",
+  "column_break_gvgi",
+  "invoice_date",
+  "invoice_due_date",
+  "section_break_jpzy",
+  "invoice_item",
+  "section_break_lfvp",
+  "column_break_iffd",
+  "column_break_ylzd",
+  "gross_total",
+  "discount",
+  "grand_total",
+  "paid_amount",
+  "payable_amount",
+  "status",
+  "bank_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_oy0n",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Customer Invoice",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_bblp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "Vendors"
+  },
+  {
+   "fieldname": "column_break_gvgi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_jpzy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "invoice_item",
+   "fieldtype": "Table",
+   "label": "Invoice Item",
+   "options": "Customer Invoice Item"
+  },
+  {
+   "fieldname": "section_break_lfvp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "precision": "2"
+  },
+  {
+   "default": "INVC-.MM.-.YY.-.###",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "INVC-.MM.-.YY.-.###"
+  },
+  {
+   "fieldname": "gross_total",
+   "fieldtype": "Currency",
+   "label": "Gross Total",
+   "precision": "2"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Currency",
+   "label": "Discount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "invoice_due_date",
+   "fieldtype": "Date",
+   "label": "Invoice Due Date"
+  },
+  {
+   "fieldname": "column_break_iffd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ylzd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Unpaid",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Unpaid\nPaid\nOverdue\nCancelled"
+  },
+  {
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Paid Amount"
+  },
+  {
+   "fieldname": "payable_amount",
+   "fieldtype": "Currency",
+   "label": "Payable Amount"
+  },
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "options": "Bank Account"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Bookings Master",
+   "link_fieldname": "linked_invoice"
+  }
+ ],
+ "modified": "2025-12-19 22:14:54.723657",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Customer Invoice",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }
