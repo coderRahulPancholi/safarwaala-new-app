@@ -294,6 +294,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.booking_type!='Fixed'",
    "fieldname": "pricing_section",
    "fieldtype": "Section Break",
    "label": "Pricing & Rates"
@@ -306,6 +307,7 @@
    "label": "Min Hours"
   },
   {
+   "depends_on": "eval:doc.booking_type!='Fixed'",
    "fieldname": "min_km",
    "fieldtype": "Int",
    "label": "Min Km"
@@ -315,11 +317,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.booking_type!='Fixed'",
    "fieldname": "per_hour_rate",
    "fieldtype": "Currency",
    "label": "Per Hour Rate"
   },
   {
+   "depends_on": "eval:doc.booking_type!='Fixed'",
    "fieldname": "per_km_rate",
    "fieldtype": "Currency",
    "label": "Per Km Rate"
@@ -335,6 +339,7 @@
    "label": "Billing"
   },
   {
+   "depends_on": "eval:doc.booking_type!='Fixed'",
    "fieldname": "base_amount",
    "fieldtype": "Currency",
    "label": "Base Amount"

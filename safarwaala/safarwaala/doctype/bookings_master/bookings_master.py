@@ -26,9 +26,9 @@ class BookingsMaster(Document):
 
     def calculate_charges(self):
         # Fetch rates from Car Modal if missing
-        if self.car_modal:
+        if self.car_modal and self.booking_type != "Fixed":
             car = frappe.get_doc("Car Modals", self.car_modal)
-            if self.booking_type in ["Local", "Fixed"]:
+            if self.booking_type == "Local":
                 if not self.min_hours: self.min_hours = car.min_local_hour
                 if not self.min_km: self.min_km = car.min_local_km
                 if not self.per_hour_rate: self.per_hour_rate = car.local_hour_rate
@@ -37,14 +37,14 @@ class BookingsMaster(Document):
             elif self.booking_type == "Outstation":
                 if not self.per_km_rate: self.per_km_rate = car.per_km_rate
                 if not self.night_rate: self.night_rate = car.night_rate
-                # We need min_km_day for calculation if min_km is not set
-                # Store it in a temporary attribute if needed or use directly
                 self._min_km_day = car.min_km_day
 
-        if self.booking_type in ["Local", "Fixed"]:
+        if self.booking_type == "Local":
             self.calculate_local_charges()
         elif self.booking_type == "Outstation":
             self.calculate_outstation_charges()
+        elif self.booking_type == "Fixed":
+            self.calculate_fixed_charges()
         
     def calculate_local_charges(self):
         # Base Charges
@@ -130,12 +130,36 @@ class BookingsMaster(Document):
         self.extra_km_charges = 0
         self.extra_hour_charges = 0
 
+    def calculate_fixed_charges(self):
+        """Fixed bookings: grand_total is vendor-entered all-inclusive price.
+        We only compute total_km and night_charges as informational."""
+        # KM (informational)
+        if self.start_km is not None and self.end_km is not None:
+            self.total_km = max(flt(self.end_km) - flt(self.start_km), 0)
+        else:
+            self.total_km = 0
+
+        # Night charges (informational)
+        if self.pickup_datetime and self.return_datetime:
+            start = get_datetime(self.pickup_datetime)
+            end = get_datetime(self.return_datetime)
+            duration_secs = (end - start).total_seconds()
+            days = ceil(duration_secs / (24 * 3600))
+            if days < 1: days = 1
+            nights = max(days - 1, 0)
+            self.night_charges = nights * flt(self.night_rate)
+
+        # Clear rate-based fields — they don't apply to Fixed
+        self.min_hours = 0
+        self.min_km = 0
+        self.per_hour_rate = 0
+        self.per_km_rate = 0
+        self.base_amount = 0
+        self.extra_km_charges = 0
+        self.extra_hour_charges = 0
+
     def calculate_expenses(self):
         # Fetch linked Vehicle Expense Logs
-        # We find logs linked to this booking reference.
-        # We remove strict booking_type dependency for flexibility, 
-        # but in practice it should be 'Bookings Master'.
-        
         expenses = frappe.db.get_list('Vehicle Expense Log', 
                                       filters={
                                           'booking_ref': self.name
@@ -152,23 +176,18 @@ class BookingsMaster(Document):
             self.tax_total += flt(row.amount)
 
     def calculate_totals(self):
+        # Fixed bookings: grand_total is the vendor-entered fixed price — never overwrite
+        if self.booking_type == "Fixed":
+            return
+
         # Sum up all components
-        # Verify component usage based on type
-        
         term_total = flt(self.base_amount) + flt(self.night_charges)
         
-        if self.booking_type in ["Local", "Fixed"]:
+        if self.booking_type == "Local":
             term_total += flt(self.extra_hour_charges) + flt(self.extra_km_charges)
             
         # Grand Total = Terms + Billable Expenses + Taxes
-        # (Assuming Driver paid non-billable expenses are NOT charged to customer, 
-        # but Billable ones ARE, regardless of who paid (if driver paid billable, we reimburse driver AND charge customer))
-        
-        calculated_grand = term_total + flt(self.billable_expense_total) + flt(self.tax_total)
-        
-        # Only overwrite grand_total if NOT Fixed (or if it's missing)
-        if self.booking_type != "Fixed":
-            self.grand_total = calculated_grand
+        self.grand_total = term_total + flt(self.billable_expense_total) + flt(self.tax_total)
 
     def on_submit(self):
         self.submit_expenses()

@@ -87,6 +87,13 @@ frappe.ui.form.on("Bookings Master", {
     car_modal(frm) {
         if (!frm.doc.car_modal) return;
         
+        // Fixed bookings don't use rate cards — skip fetching
+        if (frm.doc.booking_type === "Fixed") {
+            frm.set_value('night_rate', 0);
+            calculate_charges(frm);
+            return;
+        }
+
         frappe.db.get_doc('Car Modals', frm.doc.car_modal).then(car => {
             if (frm.doc.booking_type === "Local") {
                 frm.set_value('min_hours', car.min_local_hour);
@@ -139,6 +146,8 @@ function calculate_charges(frm) {
             calculate_local(frm);
         } else if (frm.doc.booking_type === "Outstation") {
             calculate_outstation(frm);
+        } else if (frm.doc.booking_type === "Fixed") {
+            calculate_fixed(frm);
         }
     } finally {
         frm._calculating = false;
@@ -235,9 +244,48 @@ function calculate_outstation(frm) {
     update_totals(frm, base_amount);
 }
 
+// ─── Fixed Booking ───
+// For Fixed bookings, grand_total is the manually-entered all-inclusive price.
+// We still track km, night charges, and expenses as *informational* fields,
+// but they do NOT affect grand_total.
+function calculate_fixed(frm) {
+    // 1. Km (informational)
+    const start_km = frm.doc.start_km || 0;
+    const end_km = frm.doc.end_km || 0;
+    let total_km = 0;
+    if (end_km > start_km) total_km = end_km - start_km;
+    frm.set_value("total_km", total_km);
+
+    // 2. Night charges (informational — not added to grand_total)
+    const start = frappe.datetime.str_to_obj(frm.doc.pickup_datetime);
+    const end   = frappe.datetime.str_to_obj(frm.doc.return_datetime);
+    let nights = 0;
+    if (start && end) {
+        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        nights = Math.max(days - 1, 0);
+    }
+    const night_rate = frm.doc.night_rate || 0;
+    frm.set_value('night_charges', nights * night_rate);
+
+    // 3. Clear rate-based fields — they don't apply to Fixed
+    frm.set_value('min_hours', 0);
+    frm.set_value('min_km', 0);
+    frm.set_value('per_hour_rate', 0);
+    frm.set_value('per_km_rate', 0);
+    frm.set_value('base_amount', 0);
+    frm.set_value('extra_km_charges', 0);
+    frm.set_value('extra_hour_charges', 0);
+
+    // 4. grand_total is NOT recalculated — it stays as the vendor-entered fixed price
+    //    (expense totals are populated by the backend on save)
+}
+
 // Lightweight recalc when user manually edits min_km or night_charges
 // (avoids the full calculate_charges path that would set those same fields)
 function update_totals_from_current(frm) {
+    // Fixed bookings: don't touch grand_total
+    if (frm.doc.booking_type === "Fixed") return;
+
     const base = frm.doc.base_amount || 0;
     const extra_km = frm.doc.extra_km_charges || 0;
     const extra_hr = frm.doc.extra_hour_charges || 0;
@@ -245,6 +293,9 @@ function update_totals_from_current(frm) {
 }
 
 function update_totals(frm, partial_total) {
+    // Fixed bookings: grand_total is the user-entered fixed price, never recalculated
+    if (frm.doc.booking_type === "Fixed") return;
+
     const night_charges = frm.doc.night_charges || 0;
     const total_charges = partial_total + night_charges;
     
