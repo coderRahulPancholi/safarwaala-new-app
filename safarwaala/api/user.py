@@ -1,4 +1,5 @@
 import frappe
+from frappe.auth import LoginManager
 
 @frappe.whitelist()
 def get_user_profile():
@@ -28,3 +29,28 @@ def get_user_profile():
         "customer_details": frappe.db.get_value("Customer", {"linked_user": user}, ["name", "name1", "mobile", "email", "type"], as_dict=True)
     }
 # path = "safarwaala.api.user.get_user_profile"   
+
+
+@frappe.whitelist(allow_guest=True)
+def custom_login(usr, pwd):
+    try:
+        login_manager = LoginManager()
+        login_manager.authenticate(user=usr, pwd=pwd)
+        login_manager.post_login()
+    except frappe.exceptions.AuthenticationError:
+        frappe.clear_messages()
+        frappe.throw("Incorrect Email/Username or Password", frappe.AuthenticationError)
+
+    frappe.db.commit()
+    user_doc = frappe.get_cached_doc("User", frappe.session.user)
+    role = user_doc.role_profile_name or ""
+
+    # Set role cookie directly from backend
+    frappe.local.cookie_manager.set_cookie("role", role)
+
+    return {
+        "success": True,
+        "message": "Logged In Successfully",
+        "user": frappe.session.user,
+        "role": role
+    }

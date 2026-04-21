@@ -326,7 +326,7 @@ def chat_agent(message, history=None, customer_id=None):
         # MODEL_NAME = "google/gemini-2.0-flash-001" 
         # MODEL_NAME = "arcee-ai/trinity-large-preview:free" 
         # MODEL_NAME = "openrouter/pony-alpha" 
-        MODEL_NAME = "openrouter/aurora-alpha" 
+        MODEL_NAME = "stepfun/step-3.5-flash:free" 
 
         # B. Get Customer Context
         customer_ctx = ""
