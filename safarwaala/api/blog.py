@@ -163,3 +163,18 @@ def get_related_blogs(slug, limit=3):
             b.category = b.categories[0] if b.categories else "Uncategorized"
 
     return {"data": blogs}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_all_slugs():
+    """
+    Returns all published blog slugs.
+    Used by Next.js generateStaticParams for ISR pre-generation.
+    """
+    slugs = frappe.get_all(
+        "Blog",
+        filters={"status": "Published"},
+        pluck="slug",
+    )
+    return {"slugs": slugs}
+
