@@ -1,0 +1,302 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:slug",
+ "creation": "2026-04-21 14:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "content_section",
+  "title",
+  "slug",
+  "status",
+  "column_break_basic",
+  "published_on",
+  "author",
+  "categories",
+  "thumbnail",
+  "body_section",
+  "short_description",
+  "content",
+  "seo_section",
+  "seo_title",
+  "meta_description",
+  "column_break_seo",
+  "canonical_url",
+  "focus_keyword",
+  "og_section",
+  "og_title",
+  "og_description",
+  "column_break_og",
+  "og_image",
+  "og_type",
+  "twitter_section",
+  "twitter_title",
+  "twitter_description",
+  "column_break_twitter",
+  "twitter_image",
+  "twitter_card_type",
+  "schema_section",
+  "schema_type",
+  "schema_json",
+  "tags_section",
+  "tags",
+  "reading_time",
+  "is_featured"
+ ],
+ "fields": [
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Blog Details"
+  },
+  {
+   "bold": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Blog Title",
+   "reqd": 1
+  },
+  {
+   "description": "Auto-generated from title. Used in the blog URL: /blogs/[slug]. Keep it lowercase with hyphens only.",
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "label": "URL Slug",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nPublished\nArchived"
+  },
+  {
+   "fieldname": "column_break_basic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "published_on",
+   "fieldtype": "Date",
+   "label": "Published On"
+  },
+  {
+   "fieldname": "author",
+   "fieldtype": "Data",
+   "label": "Author Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "categories",
+   "fieldtype": "Table MultiSelect",
+   "label": "Categories",
+   "options": "Category Item"
+  },
+  {
+   "description": "Recommended: 1200x630px for best social sharing",
+   "fieldname": "thumbnail",
+   "fieldtype": "Attach Image",
+   "label": "Thumbnail Image"
+  },
+  {
+   "fieldname": "body_section",
+   "fieldtype": "Section Break",
+   "label": "Blog Content"
+  },
+  {
+   "description": "Used in blog cards and as fallback meta description. Keep under 160 characters.",
+   "fieldname": "short_description",
+   "fieldtype": "Small Text",
+   "label": "Short Description / Excerpt",
+   "reqd": 1
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text Editor",
+   "label": "Blog Body",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "seo_section",
+   "fieldtype": "Section Break",
+   "label": "SEO Settings"
+  },
+  {
+   "description": "Overrides the blog title for the browser tab and Google results. Ideal length: 50-60 characters.",
+   "fieldname": "seo_title",
+   "fieldtype": "Data",
+   "label": "SEO Title (Title Tag)",
+   "length": 70
+  },
+  {
+   "description": "Shown in Google search results under the title. Ideal length: 120-155 characters.",
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description",
+   "length": 160
+  },
+  {
+   "fieldname": "column_break_seo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Set only if this content is a copy of another URL. Prevents duplicate content penalties.",
+   "fieldname": "canonical_url",
+   "fieldtype": "Data",
+   "label": "Canonical URL"
+  },
+  {
+   "description": "Primary keyword this blog targets. Used internally for SEO tracking.",
+   "fieldname": "focus_keyword",
+   "fieldtype": "Data",
+   "label": "Focus Keyword"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "og_section",
+   "fieldtype": "Section Break",
+   "label": "Open Graph (Facebook / LinkedIn)"
+  },
+  {
+   "fieldname": "og_title",
+   "fieldtype": "Data",
+   "label": "OG Title"
+  },
+  {
+   "fieldname": "og_description",
+   "fieldtype": "Small Text",
+   "label": "OG Description"
+  },
+  {
+   "fieldname": "column_break_og",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Recommended: 1200x630px",
+   "fieldname": "og_image",
+   "fieldtype": "Attach Image",
+   "label": "OG Image"
+  },
+  {
+   "default": "article",
+   "fieldname": "og_type",
+   "fieldtype": "Select",
+   "label": "OG Type",
+   "options": "article\nwebsite\nblog"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "twitter_section",
+   "fieldtype": "Section Break",
+   "label": "Twitter / X Card"
+  },
+  {
+   "fieldname": "twitter_title",
+   "fieldtype": "Data",
+   "label": "Twitter Title"
+  },
+  {
+   "fieldname": "twitter_description",
+   "fieldtype": "Small Text",
+   "label": "Twitter Description"
+  },
+  {
+   "fieldname": "column_break_twitter",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "twitter_image",
+   "fieldtype": "Attach Image",
+   "label": "Twitter Image"
+  },
+  {
+   "default": "summary_large_image",
+   "fieldname": "twitter_card_type",
+   "fieldtype": "Select",
+   "label": "Twitter Card Type",
+   "options": "summary_large_image\nsummary"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "schema_section",
+   "fieldtype": "Section Break",
+   "label": "Schema / Structured Data"
+  },
+  {
+   "default": "Article",
+   "fieldname": "schema_type",
+   "fieldtype": "Select",
+   "label": "Schema Type",
+   "options": "Article\nBlogPosting\nNewsArticle"
+  },
+  {
+   "description": "Leave blank to auto-generate. Override with custom JSON-LD if needed.",
+   "fieldname": "schema_json",
+   "fieldtype": "Code",
+   "label": "Custom Schema JSON-LD",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "tags_section",
+   "fieldtype": "Section Break",
+   "label": "Tags & Metadata"
+  },
+  {
+   "description": "Comma-separated. Example: travel, road-trip, car-rental",
+   "fieldname": "tags",
+   "fieldtype": "Data",
+   "label": "Tags"
+  },
+  {
+   "default": "5",
+   "fieldname": "reading_time",
+   "fieldtype": "Int",
+   "label": "Estimated Reading Time (minutes)"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_featured",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Featured Post"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-21 21:12:31.926455",
+ "modified_by": "rahul@gmail.com",
+ "module": "Safarwaala",
+ "name": "Blog",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Guest"
+  },
+  {
+   "read": 1,
+   "role": "Customer"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "published_on",
+ "sort_order": "DESC",
+ "states": []
+}
