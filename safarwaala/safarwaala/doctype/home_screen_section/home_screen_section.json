@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "creation": "2026-04-25 00:00:31.352028",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_type",
+  "title",
+  "selection_type",
+  "fixed_ids",
+  "filters_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Section Type",
+   "options": "Blogs\nExperiences\nDestinations",
+   "reqd": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "default": "Filters",
+   "fieldname": "selection_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Selection Type",
+   "options": "Filters\nFixed"
+  },
+  {
+   "depends_on": "eval:doc.selection_type=='Fixed'",
+   "description": "Comma separated IDs for fixed selection",
+   "fieldname": "fixed_ids",
+   "fieldtype": "Data",
+   "label": "Fixed IDs"
+  },
+  {
+   "depends_on": "eval:doc.selection_type=='Filters'",
+   "description": "JSON for dynamic filtering",
+   "fieldname": "filters_json",
+   "fieldtype": "Code",
+   "label": "Filters JSON",
+   "options": "JSON"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-25 00:02:30.971391",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Home Screen Section",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
