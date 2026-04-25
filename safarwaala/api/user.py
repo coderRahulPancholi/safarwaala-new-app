@@ -1,11 +1,11 @@
 import frappe
 from frappe.auth import LoginManager
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_user_profile():
     user = frappe.session.user
     if user == "Guest":
-        frappe.throw("Please login to access this feature", frappe.PermissionError)
+        return {"is_logged_in": False}
     
     user_doc = frappe.get_doc("User", user)
     
@@ -14,6 +14,7 @@ def get_user_profile():
     driver = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
 
     return {
+        "is_logged_in": True,
         "name": user_doc.name,
         "full_name": user_doc.full_name,
         "first_name": user_doc.first_name,
@@ -28,8 +29,6 @@ def get_user_profile():
         "driver_id": driver,
         "customer_details": frappe.db.get_value("Customer", {"linked_user": user}, ["name", "name1", "mobile", "email", "type"], as_dict=True)
     }
-# path = "safarwaala.api.user.get_user_profile"   
-
 
 @frappe.whitelist(allow_guest=True)
 def custom_login(usr, pwd):
@@ -54,3 +53,9 @@ def custom_login(usr, pwd):
         "user": frappe.session.user,
         "role": role
     }
+
+@frappe.whitelist()
+def custom_logout():
+    frappe.local.login_manager.logout()
+    frappe.local.cookie_manager.delete_cookie("role")
+    return {"success": True, "message": "Logged out successfully"}
