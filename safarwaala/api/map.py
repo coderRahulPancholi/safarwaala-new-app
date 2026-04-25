@@ -138,3 +138,63 @@ def autocomplete(input: str = "", location: str = None, radius: int = None):
         "status": "success",
         "data": data,
     }
+
+
+@frappe.whitelist(allow_guest=True)
+def directions(origin: str, destination: str):
+    """
+    Get routing directions between two coordinates via OLA Maps basic directions API.
+    
+    Args:
+        origin (str): Origin point "lat,lng"
+        destination (str): Destination point "lat,lng"
+    """
+    if not origin or not destination:
+        frappe.throw("Both origin and destination coordinates are required", frappe.ValidationError)
+        
+    api_key = _get_ola_api_key()
+    
+    params = {
+        "origin": origin,
+        "destination": destination,
+        "api_key": api_key,
+    }
+    
+    try:
+        response = requests.post(
+            "https://api.olamaps.io/routing/v1/directions/basic",
+            params=params,
+            headers={"X-Request-Id": frappe.generate_hash(length=10)},
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except requests.Timeout:
+        frappe.throw("OLA Maps Directions API request timed out.", frappe.ValidationError)
+    except requests.RequestException as exc:
+        frappe.throw(f"OLA Maps Directions API request failed: {exc}", frappe.ValidationError)
+        
+    if data.get("status") != "SUCCESS":
+        frappe.throw(
+            data.get("error_message") or "OLA Maps returned a non-success status.",
+            frappe.ValidationError,
+        )
+        
+    routes = data.get("routes", [])
+    if not routes:
+        frappe.throw("No route found between the given locations.", frappe.ValidationError)
+        
+    leg = routes[0].get("legs", [{}])[0]
+    distance_meters = leg.get("distance", 0)
+    duration_seconds = leg.get("duration", 0)
+    
+    return {
+        "status": "success",
+        "data": {
+            "distance_km": round(distance_meters / 1000, 1) if distance_meters else 0,
+            "duration_seconds": duration_seconds,
+            "readable_distance": leg.get("readable_distance", f"{round(distance_meters / 1000, 1)} km"),
+            "readable_duration": leg.get("readable_duration", ""),
+        }
+    }
+
