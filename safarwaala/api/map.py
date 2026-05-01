@@ -154,6 +154,12 @@ def get_matrix_details(origin: str, destination: str):
         origin_place_id = f"ola-platform:{origin}" if not origin.startswith("ola-platform:") else origin
         dest_place_id = f"ola-platform:{destination}" if not destination.startswith("ola-platform:") else destination
         
+        # Check cache
+        cache_key = f"safarwaala:ola:matrix:{origin_place_id}:{dest_place_id}"
+        cached_data = frappe.cache().get_value(cache_key)
+        if cached_data:
+            return handle_success("Matrix details fetched from cache successfully", cached_data)
+        
         # Get details
         from_details = get_place_details(origin_place_id)
         if from_details.get("status") == "error":
@@ -221,6 +227,8 @@ def get_matrix_details(origin: str, destination: str):
                 "eligible_type": eligible_type,
             }
         
+        frappe.cache().set_value(cache_key, result_data, expires_in_sec=7200) # Cache for 2 hours
+        
         return handle_success("Matrix details fetched successfully", result_data)
 
     except requests.Timeout:
@@ -239,6 +247,11 @@ def get_matrix_details(origin: str, destination: str):
 
 def get_place_details(place_id: str) -> dict:
     try:
+        cache_key = f"safarwaala:ola:place:{place_id}"
+        cached_data = frappe.cache().get_value(cache_key)
+        if cached_data:
+            return cached_data
+
         api_key = _get_ola_api_key()
         params = {
             "place_id": place_id,
@@ -282,7 +295,7 @@ def get_place_details(place_id: str) -> dict:
         lat = result.get("geometry", {}).get("location", {}).get("lat")
         lng = result.get("geometry", {}).get("location", {}).get("lng")
         
-        return {
+        result_data = {
             "name": result.get("name", ""),
             "formatted_address": result.get("formatted_address", ""),
             "place_id": result.get("reference", ""),
@@ -295,6 +308,9 @@ def get_place_details(place_id: str) -> dict:
             "types": result.get("types", []),
             "layers": result.get("layers", []),
         }
+        
+        frappe.cache().set_value(cache_key, result_data, expires_in_sec=7200) # Cache for 2 hours
+        return result_data
         
     except requests.Timeout:
         return handle_error("OLA Maps Details API request timed out.", None)

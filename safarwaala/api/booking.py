@@ -57,6 +57,95 @@ def create_booking(booking_type, booking_data):
         frappe.log_error(f"Create Booking Error: {str(e)}")
         return {"success": False, "message": str(e)}
 
+@frappe.whitelist(allow_guest=True)
+def create_customer_booking(
+    booking_type,
+    car_model,
+    customer_name,
+    customer_mobile,
+    pickup_datetime,
+    pickup_address,
+    customer=None,
+    pickup_latitude=None,
+    pickup_longitude=None,
+    drop_address=None,
+    drop_latitude=None,
+    drop_longitude=None,
+    estimated_distance_km=None,
+    estimated_duration_mins=None,
+    package_type=None,
+    min_hours=None,
+    min_km=None,
+    per_hour_rate=None,
+    per_km_rate=None,
+    base_amount=None,
+    trip_type=None,
+    return_datetime=None,
+    from_place_id=None,
+    to_place_id=None,
+):
+    """
+    Customer-facing booking creation endpoint for the Bookings doctype.
+    Handles both Local (with package) and Outstation booking types.
+    """
+    try:
+        bt_map = {"local": "Local", "outstation": "Outstation"}
+        bt_value = bt_map.get(booking_type.lower(), booking_type.capitalize())
+
+        doc_data = {
+            "doctype": "Bookings",
+            "booking_type": bt_value,
+            "car_model": car_model,
+            "customer_name": customer_name,
+            "customer_mobile": customer_mobile,
+            "pickup_datetime": pickup_datetime,
+            "pickup_address": pickup_address,
+        }
+
+        if customer: doc_data["customer"] = customer
+
+        if pickup_latitude: doc_data["pickup_latitude"] = str(pickup_latitude)
+        if pickup_longitude: doc_data["pickup_longitude"] = str(pickup_longitude)
+        if drop_address: doc_data["drop_address"] = drop_address
+        if drop_latitude: doc_data["drop_latitude"] = str(drop_latitude)
+        if drop_longitude: doc_data["drop_longitude"] = str(drop_longitude)
+        if estimated_distance_km: doc_data["estimated_distance_km"] = float(estimated_distance_km)
+        if estimated_duration_mins: doc_data["estimated_duration_mins"] = int(float(estimated_duration_mins))
+
+        if bt_value == "Local":
+            if package_type: doc_data["package_type"] = package_type
+            if min_hours: doc_data["min_hours"] = int(float(min_hours))
+            if min_km: doc_data["min_km"] = int(float(min_km))
+            if per_hour_rate: doc_data["per_hour_rate"] = float(per_hour_rate)
+            if per_km_rate: doc_data["per_km_rate"] = float(per_km_rate)
+            if base_amount: doc_data["base_amount"] = float(base_amount)
+
+        if bt_value == "Outstation":
+            if trip_type: doc_data["trip_type"] = trip_type
+            if return_datetime: doc_data["return_datetime"] = return_datetime
+            if per_km_rate: doc_data["per_km_rate"] = float(per_km_rate)
+            if min_km: doc_data["min_km"] = int(float(min_km))
+            if base_amount: doc_data["base_amount"] = float(base_amount)
+
+        doc = frappe.get_doc(doc_data)
+        doc.insert(ignore_permissions=True)
+
+        # Store place IDs if the fields exist on the doctype
+        meta_fields = {f.fieldname for f in frappe.get_meta("Bookings").fields}
+        updates = {}
+        if from_place_id and "from_place_id" in meta_fields:
+            updates["from_place_id"] = from_place_id
+        if to_place_id and "to_place_id" in meta_fields:
+            updates["to_place_id"] = to_place_id
+        if updates:
+            frappe.db.set_value("Bookings", doc.name, updates)
+
+        return {"success": True, "message": "Booking created successfully", "data": {"name": doc.name}}
+
+    except Exception as e:
+        frappe.log_error(f"create_customer_booking Error: {str(e)[:200]}")
+        return {"success": False, "message": str(e)}
+
 @frappe.whitelist()
 def get_my_bookings():
     """

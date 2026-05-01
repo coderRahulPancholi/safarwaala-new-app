@@ -44,6 +44,8 @@
   "pickup_longitude",
   "drop_latitude",
   "drop_longitude",
+  "from_place_id",
+  "to_place_id",
   "column_break_routing",
   "estimated_distance_km",
   "estimated_duration_mins",
@@ -306,6 +308,16 @@
    "label": "Drop Longitude"
   },
   {
+   "fieldname": "from_place_id",
+   "fieldtype": "Data",
+   "label": "From Place ID"
+  },
+  {
+   "fieldname": "to_place_id",
+   "fieldtype": "Data",
+   "label": "To Place ID"
+  },
+  {
    "fieldname": "column_break_routing",
    "fieldtype": "Column Break"
   },
@@ -493,7 +505,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-01 16:13:05.654226",
+ "modified": "2026-05-01 17:18:48.204446",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "Bookings",
