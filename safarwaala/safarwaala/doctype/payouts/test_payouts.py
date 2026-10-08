@@ -1,9 +1,9 @@
-# Copyright (c) 2025, rahul and Contributors
+# Copyright (c) 2026, rahul and Contributors
 # See license.txt
 
 # import frappe
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestBookingsMaster(FrappeTestCase):
+class TestPayouts(FrappeTestCase):
 	pass

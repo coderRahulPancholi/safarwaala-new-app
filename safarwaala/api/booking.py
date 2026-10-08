@@ -83,6 +83,7 @@ def create_customer_booking(
     return_datetime=None,
     from_place_id=None,
     to_place_id=None,
+    office_to_pickup_km=None,
 ):
     """
     Customer-facing booking creation endpoint for the Bookings doctype.
@@ -121,11 +122,13 @@ def create_customer_booking(
             if base_amount: doc_data["base_amount"] = float(base_amount)
 
         if bt_value == "Outstation":
-            if trip_type: doc_data["trip_type"] = trip_type
+            # All outstation bookings are round trips
+            doc_data["trip_type"] = "RoundTrip"
             if return_datetime: doc_data["return_datetime"] = return_datetime
             if per_km_rate: doc_data["per_km_rate"] = float(per_km_rate)
             if min_km: doc_data["min_km"] = int(float(min_km))
             if base_amount: doc_data["base_amount"] = float(base_amount)
+            if office_to_pickup_km: doc_data["office_to_pickup_km"] = float(office_to_pickup_km)
 
         doc = frappe.get_doc(doc_data)
         doc.insert(ignore_permissions=True)

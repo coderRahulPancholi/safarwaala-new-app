@@ -8,13 +8,14 @@
   "section_break_rvqj",
   "amended_from",
   "section_break_wuuj",
-  "invoice_type",
+  "record_type",
+  "record_id",
   "column_break_cvwu",
-  "invoice_number",
   "section_break_lzlc",
   "column_break_pbvb",
-  "column_break_eudr",
-  "amount"
+  "status",
+  "amount",
+  "column_break_eudr"
  ],
  "fields": [
   {
@@ -36,20 +37,8 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "invoice_type",
-   "fieldtype": "Link",
-   "label": "Invoice Type",
-   "options": "DocType"
-  },
-  {
    "fieldname": "column_break_cvwu",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "invoice_number",
-   "fieldtype": "Dynamic Link",
-   "label": "Invoice Number",
-   "options": "invoice_type"
   },
   {
    "fieldname": "section_break_lzlc",
@@ -68,13 +57,31 @@
    "fieldtype": "Currency",
    "label": "Amount",
    "precision": "2"
+  },
+  {
+   "fieldname": "record_type",
+   "fieldtype": "Link",
+   "label": "Record Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "record_id",
+   "fieldtype": "Dynamic Link",
+   "label": "Record Id",
+   "options": "record_type"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Link",
+   "label": "Status",
+   "options": "Status Master"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-16 17:23:26.432814",
+ "modified": "2026-05-09 17:15:49.842218",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "Payments",

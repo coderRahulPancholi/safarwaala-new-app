@@ -141,10 +141,11 @@ def autocomplete(input: str = "", location: str = None, radius: int = None):
 def get_matrix_details(origin: str, destination: str):
     """
     Get routing directions between two references via OLA Maps basic directions API.
+    Also computes office → pickup dead-km from Safarwaala Settings for outstation trips.
     
     Args:
-        origin (str): Origin reference ID
-        destination (str): Destination reference ID
+        origin (str): Origin reference ID (pickup)
+        destination (str): Destination reference ID (drop)
     """
     try:
         if not origin or not destination:
@@ -160,7 +161,7 @@ def get_matrix_details(origin: str, destination: str):
         if cached_data:
             return handle_success("Matrix details fetched from cache successfully", cached_data)
         
-        # Get details
+        # Get place details for pickup and drop
         from_details = get_place_details(origin_place_id)
         if from_details.get("status") == "error":
             return from_details
@@ -182,6 +183,7 @@ def get_matrix_details(origin: str, destination: str):
         
         api_key = _get_ola_api_key()
         
+        # ── Pickup → Drop route ───────────────────────────────────────────────
         params = {
             "origin": origin_coords,
             "destination": dest_coords,
@@ -211,23 +213,65 @@ def get_matrix_details(origin: str, destination: str):
         duration_seconds = leg.get("duration", 0)
         distance_km = round(distance_meters / 1000, 1) if distance_meters else 0
         duration_hours = round(duration_seconds / 3600, 1) if duration_seconds else 0   
-        eligible_type = 'outstation'
 
+        eligible_type = 'outstation'
         if from_details.get("city") == to_details.get("city"):
             eligible_type = 'local'
             
+        # ── Office → Pickup dead-km calculation (outstation only) ─────────────
+        # Fetches office lat/lng from Safarwaala Settings. This is the fleet dispatch
+        # distance (dead km) that the vehicle travels from the office to the pickup point.
+        # Cached separately per office+pickup pair for 2 hours.
+        office_to_pickup_km = 0
+        if eligible_type == "outstation":
+            try:
+                settings = frappe.get_single("Safarwaala Settings")
+                office_lat = settings.get("lat")
+                office_lng = settings.get("long")
+                if office_lat and office_lng:
+                    office_coords = f"{office_lat},{office_lng}"
+                    office_cache_key = f"safarwaala:ola:office_pickup:{office_lat:.4f},{office_lng:.4f}:{origin_place_id}"
+                    cached_office_km = frappe.cache().get_value(office_cache_key)
+                    if cached_office_km is not None:
+                        office_to_pickup_km = cached_office_km
+                    else:
+                        office_resp = requests.post(
+                            "https://api.olamaps.io/routing/v1/directions/basic",
+                            params={
+                                "origin": office_coords,
+                                "destination": origin_coords,
+                                "api_key": api_key,
+                            },
+                            headers={"X-Request-Id": frappe.generate_hash(length=10)},
+                            timeout=8,
+                        )
+                        office_resp.raise_for_status()
+                        office_data = office_resp.json()
+                        if office_data.get("status") == "SUCCESS":
+                            office_routes = office_data.get("routes", [])
+                            if office_routes:
+                                office_leg = office_routes[0].get("legs", [{}])[0]
+                                office_dist_m = office_leg.get("distance", 0)
+                                office_to_pickup_km = round(office_dist_m / 1000, 1) if office_dist_m else 0
+                        frappe.cache().set_value(office_cache_key, office_to_pickup_km, expires_in_sec=7200)
+            except Exception as e:
+                frappe.log_error(message=str(e), title="Office→Pickup Distance Error")
+                office_to_pickup_km = 0
+        # ─────────────────────────────────────────────────────────────────────
+
         result_data = {
-                "distance_km": distance_km,
-                "duration_seconds": duration_seconds,
-                "distance_hours": duration_hours,
-                "readable_distance": leg.get("readable_distance", f"{round(distance_meters / 1000, 1)} km"),
-                "readable_duration": leg.get("readable_duration", ""),
-                "from_city": from_details,
-                "to_city": to_details,
-                "eligible_type": eligible_type,
-            }
+            "distance_km": distance_km,
+            "duration_seconds": duration_seconds,
+            "distance_hours": duration_hours,
+            "readable_distance": leg.get("readable_distance", f"{round(distance_meters / 1000, 1)} km"),
+            "readable_duration": leg.get("readable_duration", ""),
+            "from_city": from_details,
+            "to_city": to_details,
+            "eligible_type": eligible_type,
+            "office_to_pickup_km": office_to_pickup_km,
+        }
         
-        frappe.cache().set_value(cache_key, result_data, expires_in_sec=7200) # Cache for 2 hours
+        frappe.cache().set_value(cache_key, result_data, expires_in_sec=7200)  # Cache for 2 hours
         
         return handle_success("Matrix details fetched successfully", result_data)
 

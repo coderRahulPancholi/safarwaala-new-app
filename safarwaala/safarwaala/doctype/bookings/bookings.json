@@ -34,7 +34,6 @@
   "pickup_datetime",
   "pickup_address",
   "from_city",
-  "trip_itinerary",
   "column_break_trip",
   "return_datetime",
   "drop_address",
@@ -46,6 +45,7 @@
   "drop_longitude",
   "from_place_id",
   "to_place_id",
+  "office_to_pickup_km",
   "column_break_routing",
   "estimated_distance_km",
   "estimated_duration_mins",
@@ -77,8 +77,7 @@
   "tax_and_charges",
   "totals_section",
   "tax_total",
-  "grand_total",
-  "linked_invoice"
+  "grand_total"
  ],
  "fields": [
   {
@@ -123,7 +122,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Bookings Master",
+   "options": "Bookings",
    "print_hide": 1,
    "read_only": 1
   },
@@ -257,11 +256,6 @@
    "options": "City Master"
   },
   {
-   "fieldname": "trip_itinerary",
-   "fieldtype": "Text Editor",
-   "label": "Trip Itinerary"
-  },
-  {
    "fieldname": "column_break_trip",
    "fieldtype": "Column Break"
   },
@@ -316,6 +310,13 @@
    "fieldname": "to_place_id",
    "fieldtype": "Data",
    "label": "To Place ID"
+  },
+  {
+   "description": "Distance from the fleet office to the customer pickup point. Used for dead-km pricing in outstation round trips.",
+   "fieldname": "office_to_pickup_km",
+   "fieldtype": "Float",
+   "label": "Office to Pickup (Dead KM)",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_routing",
@@ -492,20 +493,13 @@
    "fieldname": "grand_total",
    "fieldtype": "Currency",
    "label": "Grand Total"
-  },
-  {
-   "fieldname": "linked_invoice",
-   "fieldtype": "Link",
-   "label": "Linked Invoice",
-   "options": "Customer Invoice",
-   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-01 17:18:48.204446",
+ "modified": "2026-05-09 19:58:45.748536",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "Bookings",

@@ -1,9 +1,9 @@
-# Copyright (c) 2025, rahul and contributors
+# Copyright (c) 2026, rahul and contributors
 # For license information, please see license.txt
 
 # import frappe
 from frappe.model.document import Document
 
 
-class TripExpensesItem(Document):
+class SafarwaalaSettings(Document):
 	pass

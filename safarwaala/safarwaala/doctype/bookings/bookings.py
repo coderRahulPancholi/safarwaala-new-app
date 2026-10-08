@@ -96,7 +96,7 @@ class Bookings(Document):
         days = ceil(duration_in_seconds / (24 * 3600))
         if days < 1: days = 1
         
-        # Min KM Calculation
+        # Min KM Calculation (per-day minimum × number of days)
         if not self.min_km:
              min_km_day = getattr(self, '_min_km_day', 0)
              if not min_km_day and self.car_model:
@@ -110,8 +110,13 @@ class Bookings(Document):
         if diff_km < 0: diff_km = 0
         self.total_km = diff_km
 
-        # Chargeable KM
-        chargeable_km = max(diff_km, flt(self.min_km))
+        # Dead KM (office → pickup, round trip = × 2)
+        # Vehicle dispatches from office to pickup and returns to office after drop.
+        dead_km = flt(self.office_to_pickup_km) * 2 if self.office_to_pickup_km else 0
+
+        # Chargeable KM = max(actual driven km + dead km, day-based minimum)
+        total_actual_km = diff_km + dead_km
+        chargeable_km = max(total_actual_km, flt(self.min_km))
         
         # Amounts
         per_km_rate = flt(self.per_km_rate)
@@ -125,6 +130,7 @@ class Bookings(Document):
         # Clear Local fields
         self.extra_km_charges = 0
         self.extra_hour_charges = 0
+
 
     def calculate_package_charges(self):
         """Package bookings: grand_total is vendor-entered all-inclusive price.
@@ -154,14 +160,14 @@ class Bookings(Document):
         self.extra_km_charges = 0
         self.extra_hour_charges = 0
 
-    def calculate_expenses(self):
-        expenses = frappe.db.get_list('Vehicle Expense Log', 
-                                      filters={'booking_ref': self.name}, 
-                                      fields=['amount', 'is_billable', 'paid_by'])
+    # def calculate_expenses(self):
+    #     expenses = frappe.db.get_list('Vehicle Expense Log', 
+    #                                   filters={'booking_ref': self.name}, 
+    #                                   fields=['amount', 'is_billable', 'paid_by'])
         
-        self.expense_total = sum([flt(d.amount) for d in expenses])
-        self.billable_expense_total = sum([flt(d.amount) for d in expenses if d.is_billable])
-        self.driver_expense_total = sum([flt(d.amount) for d in expenses if d.paid_by == 'Driver'])
+    #     self.expense_total = sum([flt(d.amount) for d in expenses])
+    #     self.billable_expense_total = sum([flt(d.amount) for d in expenses if d.is_billable])
+    #     self.driver_expense_total = sum([flt(d.amount) for d in expenses if d.paid_by == 'Driver'])
 
     def calculate_taxes(self):
         self.tax_total = 0
@@ -180,57 +186,57 @@ class Bookings(Document):
         self.grand_total = term_total + flt(self.billable_expense_total) + flt(self.tax_total)
 
     def on_submit(self):
-        self.submit_expenses()
-        self.create_customer_invoice()
-        self.create_driver_payment()
+        # self.submit_expenses()
+        # self.create_customer_invoice()
+        # self.create_driver_payment()
 
-    def submit_expenses(self):
-        expenses = frappe.db.get_list('Vehicle Expense Log', 
-                                      filters={'booking_ref': self.name, 'docstatus': 0})
-        for expense_data in expenses:
-            try:
-                expense = frappe.get_doc("Vehicle Expense Log", expense_data.name)
-                expense.status = "Approved"
-                expense.save(ignore_permissions=True)
-                expense.submit()
-            except Exception:
-                pass
+    # def submit_expenses(self):
+    #     expenses = frappe.db.get_list('Vehicle Expense Log', 
+    #                                   filters={'booking_ref': self.name, 'docstatus': 0})
+    #     for expense_data in expenses:
+    #         try:
+    #             expense = frappe.get_doc("Vehicle Expense Log", expense_data.name)
+    #             expense.status = "Approved"
+    #             expense.save(ignore_permissions=True)
+    #             expense.submit()
+    #         except Exception:
+    #             pass
 
-    def create_customer_invoice(self):
-        if frappe.db.exists("Customer Invoice", {"booking_id": self.name}):
-            return
+    # def create_customer_invoice(self):
+    #     if frappe.db.exists("Customer Invoice", {"booking_id": self.name}):
+    #         return
 
-        customer_paid_expenses = frappe.db.sql("""
-            SELECT SUM(amount) FROM `tabVehicle Expense Log`
-            WHERE booking_ref=%s AND paid_by='Customer' AND docstatus=1
-        """, (self.name,))
+    #     customer_paid_expenses = frappe.db.sql("""
+    #         SELECT SUM(amount) FROM `tabVehicle Expense Log`
+    #         WHERE booking_ref=%s AND paid_by='Customer' AND docstatus=1
+    #     """, (self.name,))
         
-        customer_paid = flt(customer_paid_expenses[0][0]) if customer_paid_expenses else 0.0
+    #     customer_paid = flt(customer_paid_expenses[0][0]) if customer_paid_expenses else 0.0
 
-        invoice = frappe.get_doc({
-            "doctype": "Customer Invoice",
-            "customer": self.customer,
-            "invoice_date": nowdate(),
-            "invoice_due_date": nowdate(),
-            "invoice_item": [{
-                "booking_id": self.name,
-                "amount": self.grand_total,
-                "description": f"{self.booking_type} Booking Charges"
-            }],
-            "gross_total": self.grand_total,
-            "grand_total": self.grand_total,
-            "paid_amount": customer_paid,
-            "payable_amount": self.grand_total - customer_paid,
-            "vendor": self.assigned_to 
-        })
-        invoice.insert(ignore_permissions=True)
+    #     invoice = frappe.get_doc({
+    #         "doctype": "Customer Invoice",
+    #         "customer": self.customer,
+    #         "invoice_date": nowdate(),
+    #         "invoice_due_date": nowdate(),
+    #         "invoice_item": [{
+    #             "booking_id": self.name,
+    #             "amount": self.grand_total,
+    #             "description": f"{self.booking_type} Booking Charges"
+    #         }],
+    #         "gross_total": self.grand_total,
+    #         "grand_total": self.grand_total,
+    #         "paid_amount": customer_paid,
+    #         "payable_amount": self.grand_total - customer_paid,
+    #         "vendor": self.assigned_to 
+    #     })
+    #     invoice.insert(ignore_permissions=True)
         
-        self.db_set("booking_status", "Invoiced")
-        self.db_set("linked_invoice", invoice.name)
+    #     self.db_set("booking_status", "Invoiced")
+    #     self.db_set("linked_invoice", invoice.name)
         
-        frappe.msgprint(_("Customer Invoice {0} created").format(invoice.name))
+    #     frappe.msgprint(_("Customer Invoice {0} created").format(invoice.name))
 
-    def create_driver_payment(self):
+    # def create_driver_payment(self):
         if frappe.db.exists("Payouts", {"booking_id": self.name, "payout_to_type": "Drivers"}):
             return
         

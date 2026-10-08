@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-09 16:55:29.287068",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "platform_commision",
+  "office_deatils_tab",
+  "lat",
+  "long",
+  "column_break_vkdj",
+  "place_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "platform_commision",
+   "fieldtype": "Float",
+   "label": "Platform Commision(%)"
+  },
+  {
+   "fieldname": "office_deatils_tab",
+   "fieldtype": "Tab Break",
+   "label": "Office Deatils"
+  },
+  {
+   "fieldname": "lat",
+   "fieldtype": "Float",
+   "label": "Lat"
+  },
+  {
+   "fieldname": "long",
+   "fieldtype": "Float",
+   "label": "Long"
+  },
+  {
+   "fieldname": "column_break_vkdj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "place_id",
+   "fieldtype": "Data",
+   "label": "Place Id"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-05-09 17:00:36.298958",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Safarwaala Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
