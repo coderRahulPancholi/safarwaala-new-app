@@ -27,7 +27,7 @@ def get_user_profile():
         "role": user_doc.role_profile_name,
         "vendor_id": vendor,
         "driver_id": driver,
-        "customer_details": frappe.db.get_value("Customer", {"linked_user": user}, ["name", "name1", "mobile", "email", "type"], as_dict=True)
+        "customer_details": frappe.db.get_value("Customer", {"linked_user": user}, ["name", "full_name", "mobile", "email", "type"], as_dict=True)
     }
 
 @frappe.whitelist(allow_guest=True)

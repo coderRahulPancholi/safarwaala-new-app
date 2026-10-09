@@ -5,21 +5,51 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "platform_commision",
-  "office_deatils_tab",
+  "platform_commission",
+  "office_details_tab",
   "lat",
   "long",
   "column_break_vkdj",
-  "place_id"
+  "place_id",
+  "booking_policy_tab",
+  "currency",
+  "currency_symbol",
+  "default_booking_status",
+  "column_break_policy1",
+  "apply_gst",
+  "gst_percent",
+  "gst_label",
+  "enable_package_bookings",
+  "booking_rules_section",
+  "min_advance_minutes",
+  "max_advance_days",
+  "min_mobile_digits",
+  "column_break_policy2",
+  "default_min_km_per_day",
+  "default_night_charge",
+  "dead_km_multiplier",
+  "local_radius_km",
+  "outstation_trip_types",
+  "inclusions_section",
+  "local_inclusions",
+  "local_exclusions",
+  "column_break_policy3",
+  "outstation_inclusions",
+  "outstation_exclusions",
+  "feasibility_section",
+  "avg_speed_kmph",
+  "max_driving_hours_per_day",
+  "min_rest_hours_at_destination",
+  "feasibility_buffer_percent"
  ],
  "fields": [
   {
-   "fieldname": "platform_commision",
+   "fieldname": "platform_commission",
    "fieldtype": "Float",
    "label": "Platform Commision(%)"
   },
   {
-   "fieldname": "office_deatils_tab",
+   "fieldname": "office_details_tab",
    "fieldtype": "Tab Break",
    "label": "Office Deatils"
   },
@@ -41,13 +71,203 @@
    "fieldname": "place_id",
    "fieldtype": "Data",
    "label": "Place Id"
+  },
+  {
+   "fieldname": "booking_policy_tab",
+   "fieldtype": "Tab Break",
+   "label": "Booking Policy"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "default": "INR",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "currency_symbol",
+   "fieldtype": "Data",
+   "label": "Currency Symbol",
+   "default": "₹"
+  },
+  {
+   "fieldname": "default_booking_status",
+   "fieldtype": "Link",
+   "label": "Default Booking Status",
+   "default": "Pending",
+   "options": "Status Master"
+  },
+  {
+   "fieldname": "column_break_policy1",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "apply_gst",
+   "fieldtype": "Check",
+   "label": "Apply GST",
+   "default": "1"
+  },
+  {
+   "fieldname": "gst_percent",
+   "fieldtype": "Float",
+   "label": "GST Percent",
+   "default": "5",
+   "depends_on": "apply_gst"
+  },
+  {
+   "fieldname": "gst_label",
+   "fieldtype": "Data",
+   "label": "GST Label",
+   "default": "GST",
+   "depends_on": "apply_gst"
+  },
+  {
+   "fieldname": "enable_package_bookings",
+   "fieldtype": "Check",
+   "label": "Enable Package Bookings for Customers",
+   "default": "0"
+  },
+  {
+   "fieldname": "booking_rules_section",
+   "fieldtype": "Section Break",
+   "label": "Booking Rules"
+  },
+  {
+   "fieldname": "min_advance_minutes",
+   "fieldtype": "Int",
+   "label": "Minimum Advance (minutes)",
+   "default": "60",
+   "description": "Earliest pickup, in minutes from now."
+  },
+  {
+   "fieldname": "max_advance_days",
+   "fieldtype": "Int",
+   "label": "Maximum Advance (days)",
+   "default": "90",
+   "description": "Furthest pickup, in days from now."
+  },
+  {
+   "fieldname": "min_mobile_digits",
+   "fieldtype": "Int",
+   "label": "Minimum Mobile Digits",
+   "default": "10"
+  },
+  {
+   "fieldname": "column_break_policy2",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "default_min_km_per_day",
+   "fieldtype": "Float",
+   "label": "Default Minimum Km per Day",
+   "default": "250",
+   "description": "Used for outstation when the car model has no minimum_km_per_day."
+  },
+  {
+   "fieldname": "default_night_charge",
+   "fieldtype": "Float",
+   "label": "Default Night Charge",
+   "default": "0",
+   "description": "Used for outstation when the car model has no night surcharge."
+  },
+  {
+   "fieldname": "dead_km_multiplier",
+   "fieldtype": "Float",
+   "label": "Dead Km Multiplier",
+   "default": "2",
+   "description": "Office-to-pickup km multiplier on round trips (dispatch and return)."
+  },
+  {
+   "fieldname": "local_radius_km",
+   "fieldtype": "Float",
+   "label": "Local Ride Radius (km)",
+   "default": "60",
+   "description": "Max route distance for which a same-city trip is suggested as an Hourly Rental. 0 disables the suggestion."
+  },
+  {
+   "fieldname": "outstation_trip_types",
+   "fieldtype": "Select",
+   "label": "Outstation Trip Types",
+   "options": "RoundTrip Only\nOneWay Only\nBoth",
+   "default": "RoundTrip Only",
+   "description": "Which trip types outstation bookings may use. Change this instead of editing code."
+  },
+  {
+   "fieldname": "inclusions_section",
+   "fieldtype": "Section Break",
+   "label": "Inclusions & Exclusions"
+  },
+  {
+   "fieldname": "local_inclusions",
+   "fieldtype": "Small Text",
+   "label": "Hourly Rental Inclusions",
+   "default": "Selected package hours and km\nDriver and vehicle for the package duration"
+  },
+  {
+   "fieldname": "local_exclusions",
+   "fieldtype": "Small Text",
+   "label": "Hourly Rental Exclusions",
+   "default": "Extra hours and km beyond the package are charged at actuals\nTolls and parking"
+  },
+  {
+   "fieldname": "column_break_policy3",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "outstation_inclusions",
+   "fieldtype": "Small Text",
+   "label": "Outstation Inclusions",
+   "default": "Driver and vehicle for the whole trip\nMinimum billable km per day applies"
+  },
+  {
+   "fieldname": "outstation_exclusions",
+   "fieldtype": "Small Text",
+   "label": "Outstation Exclusions",
+   "default": "Tolls and parking\nKm beyond the minimum are charged at actuals"
+  },
+  {
+   "fieldname": "feasibility_section",
+   "description": "Used to reject itineraries that cannot physically be driven in the time booked.",
+   "fieldtype": "Section Break",
+   "label": "Trip Feasibility"
+  },
+  {
+   "fieldname": "avg_speed_kmph",
+   "default": "45",
+   "description": "Planning speed for estimating drive time. Deliberately conservative: it must account for traffic, breaks and ghat sections.",
+   "fieldtype": "Float",
+   "label": "Average Highway Speed (km/h)"
+  },
+  {
+   "fieldname": "max_driving_hours_per_day",
+   "default": "13",
+   "description": "How long one driver may cover in a day. 13 h permits a genuine long day trip (e.g. Jaipur-Delhi and back, ~11.4 h) while still forcing an overnight on anything longer.",
+   "fieldtype": "Float",
+   "label": "Max Driving Hours Per Day"
+  },
+  {
+   "fieldname": "min_rest_hours_at_destination",
+   "default": "6",
+   "description": "Rest the driver needs before the return leg on a round trip.",
+   "fieldtype": "Float",
+   "label": "Min Rest Hours At Destination"
+  },
+  {
+   "fieldname": "feasibility_buffer_percent",
+   "default": "15",
+   "description": "Slack added to the computed drive time before a trip is called impossible.",
+   "fieldtype": "Float",
+   "label": "Feasibility Buffer (%)"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-05-09 17:00:36.298958",
+ "modified": "2026-10-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Safarwaala",
  "name": "Safarwaala Settings",

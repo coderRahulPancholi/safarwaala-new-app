@@ -14,7 +14,9 @@
   "email",
   "linked_user",
   "pricing_section",
-  "applicable_commission"
+  "applicable_commission",
+  "rate_card_section",
+  "rate_card"
  ],
  "fields": [
   {
@@ -61,7 +63,20 @@
   {
    "fieldname": "applicable_commission",
    "fieldtype": "Float",
-   "label": "Applicable Commission "
+   "label": "Applicable Commission ",
+   "description": "Fallback margin %, used only when no rate-card row matches. Vendor cost = customer fare x (1 - commission/100)."
+  },
+  {
+   "fieldname": "rate_card_section",
+   "fieldtype": "Section Break",
+   "label": "Rate Card",
+   "description": "What we pay this vendor. Most specific row wins: car model, then category, then a catch-all for the booking type. With no matching row the vendor's commission below is used instead."
+  },
+  {
+   "fieldname": "rate_card",
+   "fieldtype": "Table",
+   "label": "Rate Card",
+   "options": "Vendor Rate"
   }
  ],
  "grid_page_length": 50,

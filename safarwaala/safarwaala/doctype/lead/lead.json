@@ -13,7 +13,16 @@
   "status",
   "source",
   "section_break_details",
-  "booking_details_json",
+  "pickup_location",
+  "drop_location",
+  "from_city",
+  "to_city",
+  "pickup_datetime",
+  "return_datetime",
+  "car_model",
+  "booking_type",
+  "trip_type",
+  "package_type",
   "note"
  ],
  "fields": [
@@ -100,10 +109,10 @@
    "label": "Return Date & Time"
   },
   {
-   "fieldname": "car_modal",
+   "fieldname": "car_model",
    "fieldtype": "Link",
-   "label": "Car Modal",
-   "options": "Car Modals"
+   "label": "Car Model",
+   "options": "Car Models"
   },
   {
    "fieldname": "booking_type",

@@ -87,6 +87,13 @@ fixtures = [
 # before_install = "safarwaala.install.before_install"
 # after_install = "safarwaala.install.after_install"
 
+# `sync_fixtures()` runs after patches, re-seeding `fixtures/custom_docperm.json` rows for
+# the booking DocTypes that were consolidated into `Bookings`. Normalise them last so the
+# permission table is stable on every migrate.
+after_migrate = [
+	"safarwaala.patches.repoint_legacy_booking_doctypes.normalize_booking_permissions"
+]
+
 # Uninstallation
 # ------------
 
@@ -143,27 +150,32 @@ permission_query_conditions = {
 	"Customer": "safarwaala.api.permission.get_linked_user_condition",
 	"Drivers": "safarwaala.api.permission.get_driver_condition",
 	"Vendors": "safarwaala.api.permission.get_linked_user_condition",
-    "OutStation Bookings": "safarwaala.api.permission.get_outstation_booking_condition",
-    "Bookings Master": "safarwaala.api.permission.get_bookings_master_condition",
-    "Duty Slips": "safarwaala.api.permission.get_duty_slip_condition",
-    "Driver Payment": "safarwaala.api.permission.get_driver_payment_condition",
+	"Bookings": "safarwaala.api.permission.get_bookings_condition",
+	"Duty Slips": "safarwaala.api.permission.get_duty_slip_condition",
 }
 
 has_permission = {
 	"Customer": "safarwaala.api.permission.has_linked_permission",
 	"Drivers": "safarwaala.api.permission.has_driver_permission",
 	"Vendors": "safarwaala.api.permission.has_linked_permission",
-    "OutStation Bookings": "safarwaala.api.permission.has_outstation_booking_permission",
-    "Bookings Master": "safarwaala.api.permission.has_bookings_master_permission",
-    "Duty Slips": "safarwaala.api.permission.has_duty_slip_permission",
-    "Driver Payment": "safarwaala.api.permission.has_driver_payment_permission",
+	"Bookings": "safarwaala.api.permission.has_bookings_permission",
+	"Duty Slips": "safarwaala.api.permission.has_duty_slip_permission",
 }
 
-# doc_events = {
-# 	"OutStation Bookings": {
-# 		"after_insert": "safarwaala.api.booking.create_booking_master"
-# 	}
-# }
+# Booking configuration is cached; any change to its sources busts the cache.
+doc_events = {
+	"Car Models": {
+		"on_update": "safarwaala.safarwaala.booking_policy.clear_booking_cache",
+		"on_trash": "safarwaala.safarwaala.booking_policy.clear_booking_cache",
+	},
+	"City Ride Package": {
+		"on_update": "safarwaala.safarwaala.booking_policy.clear_booking_cache",
+		"on_trash": "safarwaala.safarwaala.booking_policy.clear_booking_cache",
+	},
+	"Safarwaala Settings": {
+		"on_update": "safarwaala.safarwaala.booking_policy.clear_booking_cache",
+	},
+}
 
 # Scheduled Tasks
 # ---------------

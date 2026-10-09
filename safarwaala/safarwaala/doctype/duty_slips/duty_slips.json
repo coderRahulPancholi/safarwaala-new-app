@@ -12,20 +12,18 @@
   "booking_id",
   "column_break_kzdi",
   "driver",
-  "car_modal",
+  "car_model",
   "car",
   "section_break_nlpq",
-  "from",
+  "from_location",
   "departure_datetime",
   "column_break_twik",
-  "to",
+  "to_location",
   "return_datetime",
   "section_break_qglh",
   "start_km",
   "column_break_pijg",
-  "end_km",
-  "section_break_kvqd",
-  "expenses"
+  "end_km"
  ],
  "fields": [
   {
@@ -47,16 +45,21 @@
    "fieldtype": "Section Break"
   },
   {
+   "default": "Bookings",
+   "description": "Target DocType of Booking Id. Only `Bookings` exists since the booking DocTypes were consolidated.",
    "fieldname": "booking_type",
-   "fieldtype": "Link",
+   "fieldtype": "Select",
    "label": "Booking Type",
-   "options": "DocType"
+   "options": "Bookings",
+   "reqd": 1
   },
   {
    "fieldname": "booking_id",
    "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
    "label": "Booking Id",
-   "options": "booking_type"
+   "options": "booking_type",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_kzdi",
@@ -69,21 +72,10 @@
    "options": "Drivers"
   },
   {
-   "fieldname": "section_break_kvqd",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "expenses",
-   "fieldtype": "Table",
-   "label": "Expenses",
-   "options": "Trip Expenses Item",
-   "hidden": 1
-  },
-  {
-   "fieldname": "car_modal",
+   "fieldname": "car_model",
    "fieldtype": "Link",
-   "label": "Car Modal",
-   "options": "Car Modals"
+   "label": "Car Model",
+   "options": "Car Models"
   },
   {
    "fieldname": "car",
@@ -96,7 +88,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "from",
+   "fieldname": "from_location",
    "fieldtype": "Data",
    "label": "From"
   },
@@ -110,7 +102,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "to",
+   "fieldname": "to_location",
    "fieldtype": "Data",
    "label": "To"
   },

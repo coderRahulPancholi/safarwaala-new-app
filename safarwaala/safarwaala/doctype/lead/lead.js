@@ -2,25 +2,23 @@ frappe.ui.form.on('Lead', {
     refresh: function(frm) {
         if(!frm.is_new() && frm.doc.status !== 'Converted') {
             frm.add_custom_button(__('Create Booking'), function() {
-                // Pre-fill Booking Master from Lead data
+                // Pre-fill a Booking from Lead data
                 
-                // Open new Booking Master
-                frappe.new_doc('Bookings Master', {
+                // Open new Booking
+                // Lead.booking_type is a label ("Local Booking" / "OutStation Booking");
+                // Bookings.booking_type is "Local" / "Outstation".
+                const booking_type = (frm.doc.booking_type || '').toLowerCase().startsWith('local') ? 'Local' : 'Outstation';
+                frappe.new_doc('Bookings', {
+                    'booking_type': booking_type,
                     'customer_name': frm.doc.first_name,
                     'customer_mobile': frm.doc.mobile_no,
-                    'customer_email': frm.doc.email_id,
-                    'pickup_location': frm.doc.pickup_location,
-                    'drop_location': frm.doc.drop_location,
-                    'from_city': frm.doc.from_city,
-                    'to_city': frm.doc.to_city,
+                    'pickup_address': frm.doc.pickup_location,
+                    'drop_address': frm.doc.drop_location,
                     'pickup_datetime': frm.doc.pickup_datetime,
                     'return_datetime': frm.doc.return_datetime,
-                    'car_modal': frm.doc.car_modal,
+                    'car_model': frm.doc.car_model,
                     'trip_type': frm.doc.trip_type,
-                    'min_km': frm.doc.min_km,
-                    'min_hours': frm.doc.min_hours,
                     'package_type': frm.doc.package_type
-                    // booking_type field in Booking Master needs careful handling if it drives logic
                 });
             });
         }

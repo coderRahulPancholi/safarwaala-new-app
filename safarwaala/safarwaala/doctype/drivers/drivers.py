@@ -6,11 +6,11 @@ from frappe.model.document import Document
 
 class Drivers(Document):
 	def validate(self):
-		if not self.name1:
+		if not self.full_name:
 			return
 		
 		# Name formatting
-		parts = self.name1.split(" ")
+		parts = self.full_name.split(" ")
 		self._first_name = parts[0]
 		self._last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
 

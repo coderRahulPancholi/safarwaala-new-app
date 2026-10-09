@@ -4,258 +4,167 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, get_datetime, time_diff_in_hours, ceil, nowdate
+from frappe.utils import flt, nowdate
+
+from safarwaala.safarwaala import booking_policy as bp
+
+PRICED_FIELDS = (
+    "min_hours",
+    "min_km",
+    "per_hour_rate",
+    "per_km_rate",
+    "night_rate",
+    "base_amount",
+    "extra_km_charges",
+    "extra_hour_charges",
+    "night_charges",
+)
+
 
 class Bookings(Document):
-    def validate(self):
-        self.calculate_charges()
-        self.calculate_expenses()
-        self.calculate_taxes()
-        self.calculate_totals()
-
-    def before_save(self):
-        self.validate()
-
+    # ── Lifecycle ───────────────────────────────────────────────────────────────
     def before_insert(self):
-        if not self.assigned_to:
-            # If user is a Vendor, auto-assign
-            if "Vendor" in frappe.get_roles(frappe.session.user):
-                 vendor = frappe.db.get_value("Vendors", {"linked_user": frappe.session.user}, "name")
-                 if vendor:
-                     self.assigned_to = vendor
+        if not self.assigned_to and "Vendor" in frappe.get_roles(frappe.session.user):
+            vendor = frappe.db.get_value("Vendors", {"linked_user": frappe.session.user}, "name")
+            if vendor:
+                self.assigned_to = vendor
 
-    def calculate_charges(self):
-        # Fetch rates from Car Modal if missing
-        if self.car_model and self.booking_type != "Package":
-            car = frappe.get_doc("Car Modals", self.car_model)
-            if self.booking_type == "Local":
-                if not self.min_hours: self.min_hours = car.min_local_hour
-                if not self.min_km: self.min_km = car.min_local_km
-                if not self.per_hour_rate: self.per_hour_rate = car.local_hour_rate
-                if not self.per_km_rate: self.per_km_rate = car.local_km_rate
-                if not self.night_rate: self.night_rate = car.night_rate
-            elif self.booking_type == "Outstation":
-                if not self.per_km_rate: self.per_km_rate = car.per_km_rate
-                if not self.night_rate: self.night_rate = car.night_rate
-                self._min_km_day = car.min_km_day
+    def validate(self):
+        policy = bp.get_policy()
+        self.validate_booking_type()
+        self.validate_schedule(policy)
+        self.validate_log_sheet()
+        self.validate_mobile(policy)
+        if not self.booking_status:
+            self.booking_status = bp.get_default_booking_status()
+        self.calculate_charges(policy)
+        self.calculate_vendor_cost(policy)
+        self.derive_settlement()
 
-        if self.booking_type == "Local":
-            self.calculate_local_charges()
-        elif self.booking_type == "Outstation":
-            self.calculate_outstation_charges()
-        elif self.booking_type == "Package":
+    # ── Validation ──────────────────────────────────────────────────────────────
+    def validate_booking_type(self):
+        self.booking_type = bp.resolve_booking_type(self.booking_type)
+        # strict: the booking type's permitted trip types come from Safarwaala Settings, and
+        # a direct document save must honour them just like the API does.
+        self.trip_type = bp.resolve_trip_type(self.booking_type, self.trip_type, strict=True)
+        meta = bp.get_booking_type_meta(self.booking_type)
+        if meta["requires_return"] and not self.return_datetime:
+            frappe.throw(
+                _("Return date/time is required for {0} bookings.").format(meta["label"]),
+                frappe.ValidationError,
+            )
+        if meta["requires_drop"] and not self.drop_address:
+            frappe.throw(
+                _("Drop address is required for {0} bookings.").format(meta["label"]),
+                frappe.ValidationError,
+            )
+        if meta["supports_packages"] and not self.package_type:
+            frappe.throw(
+                _("Package is required for {0} bookings.").format(meta["label"]),
+                frappe.ValidationError,
+            )
+
+    def validate_schedule(self, policy):
+        pickup = bp.parse_datetime(self.pickup_datetime)
+        return_dt = bp.parse_datetime(self.return_datetime)
+        if return_dt and pickup and return_dt <= pickup:
+            frappe.throw(_("Return date/time must be after the pickup date/time."), frappe.ValidationError)
+        if pickup and self.is_new() and not self.amended_from and not self._is_desk_user():
+            bp.check_pickup_window(pickup, policy)
+
+        # An itinerary that cannot physically be driven in the booked window is rejected
+        # here too, so a Desk-entered booking gets the same guard as the customer API.
+        feasibility = bp.check_trip_feasibility(
+            self.estimated_distance_km, pickup, return_dt, self.trip_type, policy
+        )
+        if not feasibility["feasible"]:
+            frappe.throw(feasibility["message"], frappe.ValidationError)
+
+    @staticmethod
+    def _is_desk_user():
+        """Desk (System User) accounts may enter back-dated bookings."""
+        user = frappe.session.user
+        return user != "Guest" and frappe.get_cached_value("User", user, "user_type") == "System User"
+
+    def validate_log_sheet(self):
+        if self.end_km and flt(self.end_km) < flt(self.start_km):
+            frappe.throw(_("End Km cannot be less than Start Km."), frappe.ValidationError)
+
+    def validate_mobile(self, policy):
+        if self.customer_mobile:
+            bp.check_mobile(self.customer_mobile, policy)
+
+    # ── Pricing ─────────────────────────────────────────────────────────────────
+    def calculate_charges(self, policy):
+        if self.booking_type == "Package":
             self.calculate_package_charges()
-        
-    def calculate_local_charges(self):
-        # Base Charges
-        base_h = flt(self.min_hours)
-        rate_h = flt(self.per_hour_rate)
-        self.base_amount = base_h * rate_h
-
-        # Running Details
-        if self.start_km is not None and self.end_km is not None:
-            self.total_km = flt(self.end_km) - flt(self.start_km)
-            if self.total_km < 0: self.total_km = 0
-        else:
-            self.total_km = 0
-
-        if self.pickup_datetime and self.return_datetime:
-            pickup = get_datetime(self.pickup_datetime)
-            drop = get_datetime(self.return_datetime)
-            # Calculate hours diff
-            diff_hours = time_diff_in_hours(drop, pickup)
-            if diff_hours < 0: diff_hours = 0
-        else:
-            diff_hours = 0
-
-        # Extra Charges
-        # Extra Hours
-        extra_h = flt(diff_hours) - base_h
-        if extra_h < 0: extra_h = 0
-        self.extra_hour_charges = extra_h * rate_h
-
-        # Extra Km
-        base_km = flt(self.min_km)
-        extra_k = flt(self.total_km) - base_km
-        if extra_k < 0: extra_k = 0
-        rate_k = flt(self.per_km_rate)
-        self.extra_km_charges = extra_k * rate_k
-
-        # Night Charges: Handled via manual input or auto-calc if needed
-        pass
-
-    def calculate_outstation_charges(self):
-        if not self.pickup_datetime or not self.return_datetime:
             return
 
-        start = get_datetime(self.pickup_datetime)
-        end = get_datetime(self.return_datetime)
-        
-        # Calculate Days & Nights
-        duration_in_seconds = (end - start).total_seconds()
-        days = ceil(duration_in_seconds / (24 * 3600))
-        if days < 1: days = 1
-        
-        # Min KM Calculation (per-day minimum × number of days)
-        if not self.min_km:
-             min_km_day = getattr(self, '_min_km_day', 0)
-             if not min_km_day and self.car_model:
-                 min_km_day = frappe.db.get_value("Car Modals", self.car_model, "min_km_day")
-             self.min_km = flt(min_km_day) * days
-
-        # Running Details
-        start_km = flt(self.start_km)
-        end_km = flt(self.end_km)
-        diff_km = end_km - start_km
-        if diff_km < 0: diff_km = 0
-        self.total_km = diff_km
-
-        # Dead KM (office → pickup, round trip = × 2)
-        # Vehicle dispatches from office to pickup and returns to office after drop.
-        dead_km = flt(self.office_to_pickup_km) * 2 if self.office_to_pickup_km else 0
-
-        # Chargeable KM = max(actual driven km + dead km, day-based minimum)
-        total_actual_km = diff_km + dead_km
-        chargeable_km = max(total_actual_km, flt(self.min_km))
-        
-        # Amounts
-        per_km_rate = flt(self.per_km_rate)
-        self.base_amount = chargeable_km * per_km_rate
-        
-        # Night Charges
-        nights = days - 1
-        if nights < 0: nights = 0
-        self.night_charges = nights * flt(self.night_rate)
-
-        # Clear Local fields
-        self.extra_km_charges = 0
-        self.extra_hour_charges = 0
-
+        car = bp.get_car_rates(self.car_model)
+        package = bp.get_package(self.package_type) if self.booking_type == "Local" else None
+        fare = bp.compute_fare(
+            booking_type=self.booking_type,
+            car=car,
+            package=package,
+            pickup=self.pickup_datetime,
+            return_dt=self.return_datetime,
+            trip_type=self.trip_type,
+            estimated_distance_km=self.estimated_distance_km,
+            office_to_pickup_km=self.get("office_to_pickup_km"),
+            start_km=self.start_km,
+            end_km=self.end_km,
+            policy=policy,
+            tax_target=self,
+        )
+        for fieldname in PRICED_FIELDS:
+            self.set(fieldname, fare[fieldname])
+        self.total_km = fare["total_km"]
+        self.tax_total = fare["tax_total"]
+        self.grand_total = fare["grand_total"]
 
     def calculate_package_charges(self):
-        """Package bookings: grand_total is vendor-entered all-inclusive price.
-        We only compute total_km and night_charges as informational."""
-        # KM (informational)
-        if self.start_km is not None and self.end_km is not None:
-            self.total_km = max(flt(self.end_km) - flt(self.start_km), 0)
-        else:
-            self.total_km = 0
+        """Package bookings: grand_total is the vendor-entered, all-inclusive price.
 
-        # Night charges (informational)
-        if self.pickup_datetime and self.return_datetime:
-            start = get_datetime(self.pickup_datetime)
-            end = get_datetime(self.return_datetime)
-            duration_secs = (end - start).total_seconds()
-            days = ceil(duration_secs / (24 * 3600))
-            if days < 1: days = 1
-            nights = max(days - 1, 0)
-            self.night_charges = nights * flt(self.night_rate)
+        Rate-driven fields are zeroed; only the logged km and the tax-row total are derived."""
+        self.total_km = max(flt(self.end_km) - flt(self.start_km), 0) if self.end_km else 0
+        for fieldname in PRICED_FIELDS:
+            self.set(fieldname, 0)
+        self.tax_total = flt(sum(flt(row.amount) for row in self.get("tax_and_charges")), 2)
 
-        # Clear rate-based fields
-        self.min_hours = 0
-        self.min_km = 0
-        self.per_hour_rate = 0
-        self.per_km_rate = 0
-        self.base_amount = 0
-        self.extra_km_charges = 0
-        self.extra_hour_charges = 0
+    # ── Vendor cost & margin ────────────────────────────────────────────────────
+    def calculate_vendor_cost(self, policy):
+        """What we owe the vendor, and the margin we keep.
 
-    # def calculate_expenses(self):
-    #     expenses = frappe.db.get_list('Vehicle Expense Log', 
-    #                                   filters={'booking_ref': self.name}, 
-    #                                   fields=['amount', 'is_billable', 'paid_by'])
-        
-    #     self.expense_total = sum([flt(d.amount) for d in expenses])
-    #     self.billable_expense_total = sum([flt(d.amount) for d in expenses if d.is_billable])
-    #     self.driver_expense_total = sum([flt(d.amount) for d in expenses if d.paid_by == 'Driver'])
+        Reuses the customer fare geometry (days, nights, chargeable km, package hours) and
+        swaps only the rates, so the two sides can never drift apart.
+        """
+        cost = bp.compute_vendor_cost(self, policy=policy)
 
-    def calculate_taxes(self):
-        self.tax_total = 0
-        for row in self.get("tax_and_charges", []):
-            self.tax_total += flt(row.amount)
+        self.vendor_rate_source = cost["vendor_rate_source"]
+        if not self.override_vendor_rates:
+            self.vendor_per_km_rate = cost["vendor_per_km_rate"]
+            self.vendor_per_hour_rate = cost["vendor_per_hour_rate"]
+            self.vendor_night_charge = cost["vendor_night_charge"]
+            self.vendor_minimum_km_per_day = cost["vendor_minimum_km_per_day"]
 
-    def calculate_totals(self):
-        if self.booking_type == "Package":
-            return
+        for fieldname in bp.VENDOR_AMOUNT_FIELDS:
+            self.set(fieldname, cost[fieldname])
 
-        term_total = flt(self.base_amount) + flt(self.night_charges)
-        
-        if self.booking_type == "Local":
-            term_total += flt(self.extra_hour_charges) + flt(self.extra_km_charges)
-            
-        self.grand_total = term_total + flt(self.billable_expense_total) + flt(self.tax_total)
+        self.margin_amount = cost["margin_amount"]
+        self.margin_percent = cost["margin_percent"]
 
-    def on_submit(self):
-        # self.submit_expenses()
-        # self.create_customer_invoice()
-        # self.create_driver_payment()
+    # ── Settlement ──────────────────────────────────────────────────────────────
+    def derive_settlement(self):
+        """Outstanding amounts and status from the stored paid totals.
 
-    # def submit_expenses(self):
-    #     expenses = frappe.db.get_list('Vehicle Expense Log', 
-    #                                   filters={'booking_ref': self.name, 'docstatus': 0})
-    #     for expense_data in expenses:
-    #         try:
-    #             expense = frappe.get_doc("Vehicle Expense Log", expense_data.name)
-    #             expense.status = "Approved"
-    #             expense.save(ignore_permissions=True)
-    #             expense.submit()
-    #         except Exception:
-    #             pass
-
-    # def create_customer_invoice(self):
-    #     if frappe.db.exists("Customer Invoice", {"booking_id": self.name}):
-    #         return
-
-    #     customer_paid_expenses = frappe.db.sql("""
-    #         SELECT SUM(amount) FROM `tabVehicle Expense Log`
-    #         WHERE booking_ref=%s AND paid_by='Customer' AND docstatus=1
-    #     """, (self.name,))
-        
-    #     customer_paid = flt(customer_paid_expenses[0][0]) if customer_paid_expenses else 0.0
-
-    #     invoice = frappe.get_doc({
-    #         "doctype": "Customer Invoice",
-    #         "customer": self.customer,
-    #         "invoice_date": nowdate(),
-    #         "invoice_due_date": nowdate(),
-    #         "invoice_item": [{
-    #             "booking_id": self.name,
-    #             "amount": self.grand_total,
-    #             "description": f"{self.booking_type} Booking Charges"
-    #         }],
-    #         "gross_total": self.grand_total,
-    #         "grand_total": self.grand_total,
-    #         "paid_amount": customer_paid,
-    #         "payable_amount": self.grand_total - customer_paid,
-    #         "vendor": self.assigned_to 
-    #     })
-    #     invoice.insert(ignore_permissions=True)
-        
-    #     self.db_set("booking_status", "Invoiced")
-    #     self.db_set("linked_invoice", invoice.name)
-        
-    #     frappe.msgprint(_("Customer Invoice {0} created").format(invoice.name))
-
-    # def create_driver_payment(self):
-        if frappe.db.exists("Payouts", {"booking_id": self.name, "payout_to_type": "Drivers"}):
-            return
-        
-        allowance = flt(self.night_charges) 
-        reimbursement = flt(self.driver_expense_total)
-        total_pay = allowance + reimbursement
-        
-        if total_pay <= 0: return
-        if not self.driver: return 
-        
-        payout = frappe.get_doc({
-            "doctype": "Payouts",
-            "payout_to_type": "Drivers",
-            "payout_to": self.driver,
-            "amount": total_pay,
-            "status": "Pending",
-            "payment_date": nowdate(),
-            "details": f"Allowance: {allowance}, Reimbursement: {reimbursement}",
-            "booking_id": self.name
-        })
-        payout.insert(ignore_permissions=True)
-        frappe.msgprint(_("Driver Payout {0} created").format(payout.name))
+        `customer_paid` / `vendor_paid` are maintained by the `Payments` controller via
+        `db_set`; this only derives the figures that follow from them.
+        """
+        self.customer_outstanding = flt(flt(self.grand_total) - flt(self.customer_paid), 2)
+        self.vendor_outstanding = flt(flt(self.vendor_payable) - flt(self.vendor_paid), 2)
+        self.settlement_status = bp.settlement_status(
+            grand_total=self.grand_total,
+            customer_paid=self.customer_paid,
+            vendor_payable=self.vendor_payable,
+            vendor_paid=self.vendor_paid,
+        )

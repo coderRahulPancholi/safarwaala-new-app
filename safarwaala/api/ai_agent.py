@@ -1,7 +1,9 @@
 import frappe
 import json
 import openai # OpenRouter uses the standard OpenAI library
-from frappe.utils import getdate, nowdate, add_days
+from frappe.utils import getdate, nowdate, add_days, add_to_date, now_datetime, get_datetime, cint, flt
+
+from safarwaala.safarwaala import booking_policy as bp
 
 # --- 1. Helper Functions ---
 def get_customer_details(customer_id):
@@ -9,11 +11,14 @@ def get_customer_details(customer_id):
     try:
         cust = frappe.get_doc("Customer", customer_id)
         return {
-            "name": cust.name1,
+            "name": cust.full_name,
             "mobile": cust.mobile
         }
     except:
         return None
+
+def _category_options():
+    return bp.select_options("Car Models", "category")
 
 def find_best_match_car(user_query, passengers=1):
     """
@@ -22,24 +27,22 @@ def find_best_match_car(user_query, passengers=1):
     try:
         pax = int(passengers) if passengers else 1
         q = user_query.lower().strip() if user_query else ""
+        categories = {c.lower(): c for c in _category_options()}
 
         # A. Category Search (Generic)
-        if q in ["sedan", "small car", "cab", "taxi"]:
-            return frappe.db.get_value("Car Modals", 
-                {"category": "Sedan", "seating_capacity": [">=", pax]}, "name", order_by="per_km_rate asc")
-        
-        if q in ["suv", "muv", "big car", "large car", "ertiga", "innova"]:
-            # Prefer Innova for SUV generally if available
-            return frappe.db.get_value("Car Modals", 
-                {"category": ["in", ["SUV", "MUV"]], "seating_capacity": [">=", pax]}, "name", order_by="per_km_rate asc")
+        generic = {"small car": "sedan", "cab": "sedan", "taxi": "sedan", "muv": "suv", "big car": "suv", "large car": "suv"}
+        category = categories.get(generic.get(q, q))
+        if category:
+            return frappe.db.get_value("Car Models",
+                {"category": category, "seating_capacity": [">=", pax]}, "name", order_by="per_km_rate asc")
 
         # B. Fuzzy/Like Search on Name
-        car = frappe.db.get_value("Car Modals", 
-            {"name": ["like", f"%{user_query}%"], "seating_capacity": [">=", pax]}, 
+        car = frappe.db.get_value("Car Models",
+            {"name": ["like", f"%{user_query}%"], "seating_capacity": [">=", pax]},
             "name"
         )
         if car: return car
-        
+
         return None
     except:
         return None
@@ -53,13 +56,14 @@ def get_available_cars(passengers=1, category=None):
         filters = {"seating_capacity": [">=", pax]}
         
         if category:
-            if category.lower() in ["sedan", "suv", "hatchback", "luxury"]:
-                 filters["category"] = category.capitalize()
-            elif category.lower() in ["innova", "ertiga"]:
-                 filters["modal_name"] = ["like", f"%{category}%"]
+            matched = {c.lower(): c for c in _category_options()}.get(category.lower())
+            if matched:
+                 filters["category"] = matched
+            else:
+                 filters["model_name"] = ["like", f"%{category}%"]
 
-        cars = frappe.get_all("Car Modals", 
-            fields=["name", "modal_name", "category", "seating_capacity", "per_km_rate", "fuel_type", "transmission"],
+        cars = frappe.get_all("Car Models", 
+            fields=["name", "model_name", "category", "seating_capacity", "per_km_rate", "hourly_rate", "fuel_type", "transmission"],
             filters=filters,
             order_by="per_km_rate asc"
         )
@@ -72,62 +76,72 @@ def get_available_cars(passengers=1, category=None):
     except Exception as e:
         return json.dumps({"success": False, "error": str(e)})
 
+def _cheapest_car(categories, pax=1):
+    """Cheapest Car Models row (rate fields) in the given categories seating at least ``pax``."""
+    name = frappe.db.get_value(
+        "Car Models",
+        {"category": ["in", categories], "seating_capacity": [">=", pax]},
+        "name",
+        order_by="per_km_rate asc",
+    )
+    return bp.get_car_rates(name) if name else None
+
+def _outstation_estimate(car, days, policy):
+    """Round-trip estimate from the shared fare engine (minimum km/day applies; no route known)."""
+    pickup = add_to_date(now_datetime(), minutes=policy["min_advance_minutes"])
+    return bp.compute_fare(
+        booking_type="Outstation",
+        car=car,
+        pickup=pickup,
+        return_dt=add_to_date(pickup, days=days),
+        trip_type=bp.default_trip_type("Outstation"),
+        policy=policy,
+    )
+
 def estimate_trip_cost(days, passengers=1, from_city=None, to_city=None):
-    """Calculates approximate Round Trip cost for Sedan and SUV."""
+    """Calculates approximate Round Trip cost for the cheapest Sedan and SUV."""
     try:
-        days = int(days) if days else 1
-        min_km_day = 300 
-        total_min_km = min_km_day * days
-        
-        # 1. Sedan Estimates
-        sedan_rate = 11 # Fallback
-        sedan = frappe.db.get_value("Car Modals", {"category": "Sedan"}, ["per_km_rate", "min_km_day"], as_dict=True)
-        if sedan:
-            sedan_rate = sedan.per_km_rate
-            if sedan.min_km_day: min_km_day = sedan.min_km_day
-            total_min_km = min_km_day * days
-            
-        sedan_cost = total_min_km * sedan_rate
-        
-        # 2. SUV Estimates
-        suv_rate = 16 # Fallback
-        suv = frappe.db.get_value("Car Modals", {"category": ["in", ["SUV", "MUV"]]}, ["per_km_rate"], as_dict=True)
-        if not suv:
-             suv = frappe.db.get_value("Car Modals", {"naming_series": ["like", "%Innova%"]}, ["per_km_rate"], as_dict=True)
-        if suv:
-            suv_rate = suv.per_km_rate
-            
-        suv_cost = total_min_km * suv_rate
-        
+        days = max(int(days), 1) if days else 1
+        policy = bp.get_policy()
+        symbol = policy["currency_symbol"]
+        categories = {c.lower(): c for c in _category_options()}
+        sedan_cat = categories.get("sedan")
+        suv_cat = categories.get("suv")
+
+        estimates = {}
+        for key, category in (("sedan", sedan_cat), ("suv", suv_cat)):
+            car = _cheapest_car([category], 1) if category else None
+            if not car:
+                continue
+            fare = _outstation_estimate(car, days, policy)
+            estimates[key] = {
+                "car_model": car.name,
+                "rate": fare["per_km_rate"],
+                "min_km_considered": fare["chargeable_km"],
+                "estimated_total": fare["grand_total"],
+            }
+
+        if not estimates:
+            return json.dumps({"success": False, "error": "No car models are configured yet."})
+
         trip_type_lbl = "Round Trip"
-        
-        response = {
+        total_min_km = max(e["min_km_considered"] for e in estimates.values())
+        lines = [
+            f"**🏷️ Estimated {trip_type_lbl} Cost for {days} Days**",
+            f"_(Min {total_min_km} km chargeable)_\n",
+        ]
+        if "sedan" in estimates:
+            lines.append(f"🚗 **Sedan** ({estimates['sedan']['car_model']}): ~{symbol}{estimates['sedan']['estimated_total']:,.0f}")
+        if "suv" in estimates:
+            lines.append(f"🚙 **SUV** ({estimates['suv']['car_model']}): ~{symbol}{estimates['suv']['estimated_total']:,.0f}")
+        gst_note = f"Includes {policy['gst_label']} @ {policy['gst_percent']:g}%. " if policy["apply_gst"] and policy["gst_percent"] else ""
+        lines.append(f"\nℹ️ *{gst_note}Excludes tolls & parking. Final price on actuals.*")
+
+        return json.dumps({
             "success": True,
-            "details": {
-                "days": days,
-                "type": trip_type_lbl,
-                "min_km_considered": total_min_km,
-                "sedan": {
-                    "rate": sedan_rate,
-                    "estimated_total": sedan_cost,
-                    "description": "Ideal for 1-4 Pax"
-                },
-                "suv": {
-                    "rate": suv_rate,
-                    "estimated_total": suv_cost,
-                    "description": "Ideal for 5-7 Pax"
-                }
-            },
-            "message": (
-                f"**🏷️ Estimated {trip_type_lbl} Cost for {days} Days**\n"
-                f"_(Min {total_min_km} km chargeable)_\n\n"
-                f"🚗 **Sedan**: ~₹{sedan_cost:,} *(max 4 Pax)*\n"
-                f"🚙 **SUV**: ~₹{suv_cost:,} *(max 7 Pax)*\n\n"
-                f"ℹ️ *Excludes tolls, parking & driver allowance. Final price on actuals.*"
-            )
-        }
-        
-        return json.dumps(response)
+            "details": {"days": days, "type": trip_type_lbl, **estimates},
+            "message": "\n".join(lines),
+        })
 
     except Exception as e:
         return json.dumps({"success": False, "error": str(e)})
@@ -171,19 +185,20 @@ def create_lead(first_name, mobile_no, from_city, to_city, days=1, plan_details=
         return json.dumps({"success": False, "error": str(e)})
 
 def create_booking(pickup_from, to_city, passengers, customer_id, days=1, start_date=None, user_car_choice=None, plan_summary=None):
-    """Creates a confirmed Bookings Master with optional plan details."""
+    """Creates an Outstation round-trip booking in Bookings with optional plan details."""
     try:
         if not start_date:
             start_date = nowdate()
-            
+
+        days = max(int(days), 1) if days else 1
         s_date = getdate(start_date)
-        e_date = add_days(s_date, int(days)) if days else s_date
+        e_date = add_days(s_date, days - 1)
 
         # Resolve Car Modal
-        car_modal = None
+        car_model = None
         if user_car_choice:
-            car_modal = find_best_match_car(user_car_choice, passengers)
-            if not car_modal:
+            car_model = find_best_match_car(user_car_choice, passengers)
+            if not car_model:
                  return json.dumps({
                      "success": False, 
                      "error": f"⚠️ Could not find a car matching '{user_car_choice}'. Please ask the user to choose: Sedan, SUV, or Innova."
@@ -194,30 +209,51 @@ def create_booking(pickup_from, to_city, passengers, customer_id, days=1, start_
                  "error": "⚠️ Car Model not specified. Please ask user: 'Which car would you like? (Sedan/SUV/Innova)'"
              })
 
-        # Try Creating Booking
+        policy = bp.get_policy()
+        cust = frappe.db.get_value("Customer", customer_id, ["full_name", "mobile"], as_dict=True)
+        if not cust:
+            return json.dumps({"success": False, "error": "Customer not found."})
+
+        # 10:00 pickup on the start day, bumped to the earliest bookable slot when that has passed.
+        pickup = get_datetime(f"{s_date} 10:00:00")
+        earliest = add_to_date(now_datetime(), minutes=policy["min_advance_minutes"] + 5)
+        if pickup < earliest:
+            pickup = earliest
+        return_dt = max(get_datetime(f"{e_date} 22:00:00"), add_to_date(pickup, hours=1))
+
         doc = frappe.get_doc({
-            "doctype": "Bookings Master",
-            "booking_type": "Outstation", 
+            "doctype": "Bookings",
+            "booking_type": bp.resolve_booking_type("outstation"),
             "customer": customer_id,
-            "car_modal": car_modal, 
-            "pickup_location": pickup_from,
-            "drop_location": to_city,
-            "pickup_datetime": f"{str(s_date)} 10:00:00",
-            "return_datetime": f"{str(e_date)} 22:00:00",
-            "booking_status": "Pending",
-            "trip_type": "RoundTrip",
-            "trip_plan_text": plan_summary if plan_summary else "" # New Field
+            "customer_name": cust.full_name,
+            "customer_mobile": cust.mobile,
+            "car_model": car_model,
+            "pickup_address": pickup_from,
+            "drop_address": to_city,
+            "from_city": bp.resolve_city(pickup_from),
+            "to_city": bp.resolve_city(to_city),
+            "pickup_datetime": pickup,
+            "return_datetime": return_dt,
+            "booking_status": bp.get_default_booking_status(),
+            "trip_type": bp.default_trip_type("Outstation"),
         })
-        
+
         doc.insert(ignore_permissions=True)
+        if plan_summary:
+            doc.add_comment("Comment", plan_summary)
         frappe.db.commit() 
         
-        if frappe.db.exists("Bookings Master", doc.name):
+        if frappe.db.exists("Bookings", doc.name):
+            symbol = policy["currency_symbol"]
             return json.dumps({
                 "success": True, 
                 "booking_id": doc.name, 
-                "car_assigned": car_modal,
-                "message": f"✅ **Booking Confirmed!**\n🆔 ID: `{doc.name}`\n🚗 Car: {car_modal}\n📅 Date: {s_date}"
+                "car_assigned": car_model,
+                "grand_total": doc.grand_total,
+                "message": (
+                    f"✅ **Booking Confirmed!**\n🆔 ID: `{doc.name}`\n🚗 Car: {car_model}\n📅 Date: {s_date}"
+                    f"\n💰 Estimated fare: {symbol}{doc.grand_total:,.0f}"
+                )
             })
         else:
             raise Exception("Persistence failed")
@@ -225,12 +261,13 @@ def create_booking(pickup_from, to_city, passengers, customer_id, days=1, start_
     except Exception as e:
         # --- SMART FALLBACK ---
         try:
+            frappe.db.rollback()
             cust = frappe.get_doc("Customer", customer_id)
-            note = f"Booking Failed Fallback. Car: {user_car_choice}, Pax: {passengers}."
+            note = f"Booking Failed Fallback ({str(e)[:120]}). Car: {user_car_choice}, Pax: {passengers}."
             if plan_summary:
                 note += f"\n\nPlanned Itinerary:\n{plan_summary}"
                 
-            lead_id = create_lead_internal(cust.name1, cust.mobile, pickup_from, to_city, note)
+            lead_id = create_lead_internal(cust.full_name, cust.mobile, pickup_from, to_city, note)
             return json.dumps({
                 "success": True, 
                 "fallback": True,

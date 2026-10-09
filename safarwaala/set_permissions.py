@@ -25,22 +25,22 @@ def run():
     set_perm("Cars", "Vendor", {'read': 1, 'write': 1, 'create': 1, 'delete': 1})
     set_perm("Drivers", "Vendor", {'read': 1, 'write': 1, 'create': 1, 'delete': 1})
     set_perm("Vendors", "Vendor", {'read': 1, 'write': 1}) # Manage own profile
-    set_perm("OutStation Bookings", "Vendor", {'read': 1, 'write': 1}) # Assign driver/car
+    set_perm("Bookings", "Vendor", {'read': 1, 'write': 1}) # Assign driver/car
     set_perm("Duty Slips", "Vendor", {'read': 1})
-    set_perm("Car Modals", "Vendor", {'read': 1}) # View modals
+    set_perm("Car Models", "Vendor", {'read': 1}) # View modals
 
     # 2. Driver Permissions
     # Drivers view their assigned bookings and duty slips
     set_perm("Drivers", "Driver", {'read': 1, 'write': 1}) # Manage own profile
-    set_perm("OutStation Bookings", "Driver", {'read': 1})
+    set_perm("Bookings", "Driver", {'read': 1})
     set_perm("Duty Slips", "Driver", {'read': 1, 'write': 1}) # Update duty slip details? Assuming yes.
 
     # 3. Customer Permissions
     # Customers create/view bookings
     set_perm("Customer", "Customer", {'read': 1, 'write': 1}) # Manage own profile
-    set_perm("OutStation Bookings", "Customer", {'read': 1, 'write': 1, 'create': 1}) 
+    set_perm("Bookings", "Customer", {'read': 1, 'write': 1, 'create': 1}) 
     set_perm("City Master", "Customer", {'read': 1})
-    set_perm("Car Modals", "Customer", {'read': 1})
+    set_perm("Car Models", "Customer", {'read': 1})
     
     frappe.db.commit()
     print("Permissions assigned.")

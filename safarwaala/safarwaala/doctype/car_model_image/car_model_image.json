@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "image_url",
+  "caption",
+  "is_primary"
+ ],
+ "fields": [
+  {
+   "description": "Absolute https:// URL, or a Frappe file path such as /files/car.jpg.",
+   "fieldname": "image_url",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Image URL",
+   "reqd": 1
+  },
+  {
+   "description": "Shown as alt text. Falls back to the model name when blank.",
+   "fieldname": "caption",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Caption"
+  },
+  {
+   "default": "0",
+   "description": "The primary image leads the gallery. Exactly one row is kept primary on save.",
+   "fieldname": "is_primary",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Primary"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-09 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Car Model Image",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -8,7 +8,7 @@
  "field_order": [
   "naming_series",
   "section_break_zjon",
-  "name1",
+  "full_name",
   "column_break_mqai",
   "mobile",
   "email",
@@ -21,9 +21,9 @@
  ],
  "fields": [
   {
-   "fieldname": "name1",
+   "fieldname": "full_name",
    "fieldtype": "Data",
-   "label": "Name"
+   "label": "Full Name"
   },
   {
    "fieldname": "column_break_mqai",
@@ -114,7 +114,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "name1,mobile",
+ "search_fields": "full_name,mobile",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

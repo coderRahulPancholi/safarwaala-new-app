@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-10-08 18:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "booking_type",
+  "car_category",
+  "car_model",
+  "column_break_scope",
+  "package",
+  "package_amount",
+  "outstation_section",
+  "per_km_rate",
+  "minimum_km_per_day",
+  "column_break_out",
+  "night_charge",
+  "local_section",
+  "per_hour_rate",
+  "column_break_local",
+  "local_km_rate"
+ ],
+ "fields": [
+  {
+   "description": "Which product this rate applies to.",
+   "fieldname": "booking_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Booking Type",
+   "options": "Outstation\nLocal\nPackage",
+   "reqd": 1
+  },
+  {
+   "description": "Leave blank to apply to every category.",
+   "fieldname": "car_category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Car Category",
+   "options": "\nHatchback\nSedan\nSUV\nLuxury"
+  },
+  {
+   "description": "Most specific match. Overrides the category row.",
+   "fieldname": "car_model",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Car Model",
+   "options": "Car Models"
+  },
+  {
+   "fieldname": "column_break_scope",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.booking_type==\"Local\"",
+   "description": "Optional: a flat vendor cost for one specific package.",
+   "fieldname": "package",
+   "fieldtype": "Link",
+   "label": "Package",
+   "options": "City Ride Package"
+  },
+  {
+   "depends_on": "eval:doc.booking_type==\"Local\" && doc.package",
+   "description": "Flat amount we pay the vendor for that package, replacing the rate maths.",
+   "fieldname": "package_amount",
+   "fieldtype": "Currency",
+   "label": "Package Amount"
+  },
+  {
+   "depends_on": "eval:doc.booking_type==\"Outstation\"",
+   "fieldname": "outstation_section",
+   "fieldtype": "Section Break",
+   "label": "Outstation Rates"
+  },
+  {
+   "fieldname": "per_km_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Per Km Rate"
+  },
+  {
+   "fieldname": "minimum_km_per_day",
+   "fieldtype": "Float",
+   "label": "Minimum Km Per Day"
+  },
+  {
+   "fieldname": "column_break_out",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "night_charge",
+   "fieldtype": "Currency",
+   "label": "Night Charge"
+  },
+  {
+   "depends_on": "eval:doc.booking_type==\"Local\"",
+   "fieldname": "local_section",
+   "fieldtype": "Section Break",
+   "label": "Hourly Rates"
+  },
+  {
+   "fieldname": "per_hour_rate",
+   "fieldtype": "Currency",
+   "label": "Per Hour Rate"
+  },
+  {
+   "fieldname": "column_break_local",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Extra km beyond the package, charged by the vendor.",
+   "fieldname": "local_km_rate",
+   "fieldtype": "Currency",
+   "label": "Local Km Rate"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-08 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Safarwaala",
+ "name": "Vendor Rate",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

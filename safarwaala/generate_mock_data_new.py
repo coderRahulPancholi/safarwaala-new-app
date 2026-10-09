@@ -50,19 +50,19 @@ def create_vendors():
     frappe.db.commit()
     return vendors
 
-def create_car_modals():
-    print("Creating Car Modals...")
+def create_car_models():
+    print("Creating Car Models...")
     created_modals = []
     
     # Reload doctype to ensure fields exist
-    frappe.reload_doc("safarwaala", "doctype", "Car Modals")
+    frappe.reload_doc("safarwaala", "doctype", "Car Models")
     
     for m in CAR_MODALS:
-        existing_name = frappe.db.get_value("Car Modals", {"modal_name": m["name"]}, "name")
+        existing_name = frappe.db.get_value("Car Models", {"model_name": m["name"]}, "name")
         
         # We want to update even if exists to fill new fields
         if existing_name:
-             doc = frappe.get_doc("Car Modals", existing_name)
+             doc = frappe.get_doc("Car Models", existing_name)
              doc.category = m["category"]
              doc.transmission = m["transmission"]
              doc.luggage_capacity = m["luggage"]
@@ -77,8 +77,8 @@ def create_car_modals():
              created_modals.append({"name": doc.name, "category": m["category"]})
         else:
             doc = frappe.get_doc({
-                "doctype": "Car Modals",
-                "modal_name": m["name"],
+                "doctype": "Car Models",
+                "model_name": m["name"],
                 "seating_capacity": m["capacity"],
                 "fuel_type": m["fuel"],
                 "category": m["category"],
@@ -116,10 +116,10 @@ def attach_image_to_car(car_doc_name, category):
             )
             print(f"  Attached image {filename} to {car_doc_name}")
 
-def create_cars(vendors, modals, count=10):
+def create_cars(vendors, models, count=10):
     print("Creating Cars...")
     for i in range(count):
-        modal_info = random.choice(modals)
+        modal_info = random.choice(models)
         vendor = random.choice(vendors)
         license_plate = f"MH{random.randint(10, 48)}{chr(random.randint(65, 90))}{chr(random.randint(65, 90))}{random.randint(1000, 9999)}"
         
@@ -144,7 +144,7 @@ def create_drivers(vendors, count=10):
         # Check by name approximation or just create
         doc = frappe.get_doc({
             "doctype": "Drivers",
-            "name1": name,
+            "full_name": name,
             "mobile": get_random_mobile(),
             "owner_vendor": vendor,
             "naming_series": "DRI-.###"
@@ -187,8 +187,8 @@ def create_cities():
 def run():
     create_cities()
     vendors = create_vendors()
-    modals = create_car_modals()
-    create_cars(vendors, modals, count=10)
+    models = create_car_models()
+    create_cars(vendors, models, count=10)
     create_drivers(vendors, count=10)
     print("Mock data generation complete.")
 

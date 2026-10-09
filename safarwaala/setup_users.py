@@ -9,7 +9,7 @@ def create_role_if_not_exists(role_name):
 def create_user_and_link(doctype, identifiers, role_name):
     """
     doctype: Name of doctype (e.g. 'Customer')
-    identifiers: dict mapping keys to fields {'name': 'name1', 'email': 'email', 'mobile': 'mobile'}
+    identifiers: dict mapping keys to fields {'name': 'full_name', 'email': 'email', 'mobile': 'mobile'}
     role_name: Role to assign
     """
     docs = frappe.get_all(doctype, fields=["name", identifiers['name'], identifiers.get('email', 'name'), identifiers.get('mobile', 'name'), "linked_user"])
@@ -58,13 +58,13 @@ def execute():
     frappe.db.commit()
 
     # 2. Customers
-    # schema: name1, email, mobile
-    create_user_and_link("Customer", {'name': 'name1', 'email': 'email', 'mobile': 'mobile'}, "Customer")
+    # schema: full_name, email, mobile
+    create_user_and_link("Customer", {'name': 'full_name', 'email': 'email', 'mobile': 'mobile'}, "Customer")
     
     # 3. Drivers
-    # schema: name1, mobile (no email usually, check schema)
-    # Drivers schema has 'name1', 'mobile'. No email field in standard mock, so we generate one.
-    create_user_and_link("Drivers", {'name': 'name1', 'mobile': 'mobile'}, "Driver")
+    # schema: full_name, mobile (no email usually, check schema)
+    # Drivers schema has 'full_name', 'mobile'. No email field in standard mock, so we generate one.
+    create_user_and_link("Drivers", {'name': 'full_name', 'mobile': 'mobile'}, "Driver")
     
     # 4. Vendors
     # schema: company_name, email, mobile, owner_name

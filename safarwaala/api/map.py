@@ -1,7 +1,9 @@
 from safarwaala.utils import handle_error
 from safarwaala.utils import handle_success
+from safarwaala.safarwaala import booking_policy as bp
 import frappe
 import requests
+from frappe.utils import flt
 
 
 def _get_ola_api_key() -> str:
@@ -137,6 +139,35 @@ def autocomplete(input: str = "", location: str = None, radius: int = None):
     return handle_success("Predictions fetched successfully", data)
 
 
+def get_route_distance_km(origin_coords: str, dest_coords: str, cache_key: str = None) -> float:
+    """Driving distance in km between two ``"lat,lng"`` strings via OLA Maps (0 when unavailable).
+
+    Results are cached for 2 hours under ``cache_key`` (defaults to a key derived from the coordinates).
+    """
+    cache_key = cache_key or f"safarwaala:ola:route_km:{origin_coords}:{dest_coords}"
+    cached = frappe.cache().get_value(cache_key)
+    if cached is not None:
+        return cached
+
+    distance_km = 0
+    resp = requests.post(
+        "https://api.olamaps.io/routing/v1/directions/basic",
+        params={"origin": origin_coords, "destination": dest_coords, "api_key": _get_ola_api_key()},
+        headers={"X-Request-Id": frappe.generate_hash(length=10)},
+        timeout=8,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    if data.get("status") == "SUCCESS":
+        routes = data.get("routes", [])
+        if routes:
+            leg = routes[0].get("legs", [{}])[0]
+            meters = leg.get("distance", 0)
+            distance_km = round(meters / 1000, 1) if meters else 0
+    frappe.cache().set_value(cache_key, distance_km, expires_in_sec=7200)
+    return distance_km
+
+
 @frappe.whitelist(allow_guest=True)
 def get_matrix_details(origin: str, destination: str):
     """
@@ -214,9 +245,18 @@ def get_matrix_details(origin: str, destination: str):
         distance_km = round(distance_meters / 1000, 1) if distance_meters else 0
         duration_hours = round(duration_seconds / 3600, 1) if duration_seconds else 0   
 
-        eligible_type = 'outstation'
-        if from_details.get("city") == to_details.get("city"):
-            eligible_type = 'local'
+        # Suggest the hourly/local product only when we can *positively* establish that both
+        # ends sit in the same city AND the route is short enough to be a city ride. Comparing
+        # the city strings alone is unsafe: OLA returns "" for many localities, and "" == ""
+        # previously made every such pair look local (a 256 km interstate trip included).
+        from_city = (from_details.get("city") or "").strip().casefold()
+        to_city = (to_details.get("city") or "").strip().casefold()
+        local_radius_km = flt(bp.get_policy().get("local_radius_km"))
+
+        same_city = bool(from_city) and bool(to_city) and from_city == to_city
+        within_radius = local_radius_km > 0 and distance_km > 0 and distance_km <= local_radius_km
+
+        eligible_type = "local" if (same_city and within_radius) else "outstation"
             
         # ── Office → Pickup dead-km calculation (outstation only) ─────────────
         # Fetches office lat/lng from Safarwaala Settings. This is the fleet dispatch
@@ -230,30 +270,9 @@ def get_matrix_details(origin: str, destination: str):
                 office_lng = settings.get("long")
                 if office_lat and office_lng:
                     office_coords = f"{office_lat},{office_lng}"
-                    office_cache_key = f"safarwaala:ola:office_pickup:{office_lat:.4f},{office_lng:.4f}:{origin_place_id}"
-                    cached_office_km = frappe.cache().get_value(office_cache_key)
-                    if cached_office_km is not None:
-                        office_to_pickup_km = cached_office_km
-                    else:
-                        office_resp = requests.post(
-                            "https://api.olamaps.io/routing/v1/directions/basic",
-                            params={
-                                "origin": office_coords,
-                                "destination": origin_coords,
-                                "api_key": api_key,
-                            },
-                            headers={"X-Request-Id": frappe.generate_hash(length=10)},
-                            timeout=8,
-                        )
-                        office_resp.raise_for_status()
-                        office_data = office_resp.json()
-                        if office_data.get("status") == "SUCCESS":
-                            office_routes = office_data.get("routes", [])
-                            if office_routes:
-                                office_leg = office_routes[0].get("legs", [{}])[0]
-                                office_dist_m = office_leg.get("distance", 0)
-                                office_to_pickup_km = round(office_dist_m / 1000, 1) if office_dist_m else 0
-                        frappe.cache().set_value(office_cache_key, office_to_pickup_km, expires_in_sec=7200)
+                    office_to_pickup_km = get_route_distance_km(
+                        office_coords, origin_coords, cache_key=f"safarwaala:ola:office_pickup:{office_lat:.4f},{office_lng:.4f}:{origin_place_id}"
+                    )
             except Exception as e:
                 frappe.log_error(message=str(e), title="Office→Pickup Distance Error")
                 office_to_pickup_km = 0
@@ -319,22 +338,38 @@ def get_place_details(place_id: str) -> dict:
         result = data.get("result", {})
         address_components = result.get("address_components", [])
         
+        # OLA does not guarantee the primary type is first, and a locality may be reported
+        # as `sublocality`/`administrative_area_level_*` depending on the place. Scan every
+        # type of every component and keep the most specific match we find.
         city = ""
         state = ""
         country = ""
         pin_code = ""
-        
+
+        CITY_TYPES = (
+            "locality",
+            "administrative_area_level_3",
+            "administrative_area_level_2",
+            "sublocality",
+        )
+        best_city_rank = len(CITY_TYPES)
+
         for component in address_components:
-            if not component.get("types"):
+            types = component.get("types") or []
+            long_name = component.get("long_name", "")
+            if not types or not long_name:
                 continue
-            if component.get("types")[0] == "locality":
-                city = component.get("long_name", "")
-            elif component.get("types")[0] == "administrative_area_level_1":
-                state = component.get("long_name", "")
-            elif component.get("types")[0] == "country":
-                country = component.get("long_name", "")
-            elif component.get("types")[0] == "postal_code":
-                pin_code = component.get("long_name", "")
+            for t in types:
+                if t in CITY_TYPES:
+                    rank = CITY_TYPES.index(t)
+                    if rank < best_city_rank:
+                        city, best_city_rank = long_name, rank
+                elif t == "administrative_area_level_1" and not state:
+                    state = long_name
+                elif t == "country" and not country:
+                    country = long_name
+                elif t == "postal_code" and not pin_code:
+                    pin_code = long_name
                 
         lat = result.get("geometry", {}).get("location", {}).get("lat")
         lng = result.get("geometry", {}).get("location", {}).get("lng")

@@ -1,31 +1,31 @@
 import frappe
-from safarwaala.safarwaala.report.driver_ledger.driver_ledger import get_data as get_ledger_data
+from frappe.utils import flt
+
 
 @frappe.whitelist()
-def get_driver_pending_balance(filters=None):
-    user = frappe.session.user
-    if user == "Administrator":
-        return 0
-    
-    total_balance = 0
-    
-    # Check if Vendor
-    if "Vendor" in frappe.get_roles(user):
-        vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
-        if vendor:
-            # Get all drivers for this vendor
-            drivers = frappe.get_all("Drivers", filters={"owner_vendor": vendor}, pluck="name")
-            for driver in drivers:
-                data = get_ledger_data(frappe._dict({"driver": driver}))
-                if data:
-                    total_balance += (data[-1].get("balance") or 0)
-        return total_balance
+def get_vendor_pending_balance(filters=None):
+	"""What is still owed to the session user's vendor, across submitted bookings.
 
-    # Check if Driver
-    driver_name = frappe.db.get_value("Drivers", {"linked_user": user}, "name")
-    if driver_name:
-        data = get_ledger_data(frappe._dict({"driver": driver_name}))
-        if data:
-            return data[-1].get("balance") or 0
-            
-    return 0
+	Driver money is deliberately not tracked: the vendor pays its own drivers, so a driver
+	has no balance with us. A Driver session therefore gets 0.
+	"""
+	user = frappe.session.user
+	if user == "Administrator":
+		# Everything still owed to every vendor.
+		rows = frappe.get_all(
+			"Bookings",
+			filters={"docstatus": ["<", 2], "assigned_to": ["is", "set"]},
+			fields=["vendor_outstanding"],
+		)
+		return flt(sum(flt(r["vendor_outstanding"]) for r in rows), 2)
+
+	vendor = frappe.db.get_value("Vendors", {"linked_user": user}, "name")
+	if not vendor:
+		return 0
+
+	rows = frappe.get_all(
+		"Bookings",
+		filters={"assigned_to": vendor, "docstatus": ["<", 2]},
+		fields=["vendor_outstanding"],
+	)
+	return flt(sum(flt(r["vendor_outstanding"]) for r in rows), 2)

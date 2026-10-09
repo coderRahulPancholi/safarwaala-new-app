@@ -6,84 +6,135 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "details_section",
+  "trip_tab",
+  "booking_section",
   "naming_series",
-  "booking_status",
   "booking_type",
-  "column_break_bshv",
+  "trip_type",
+  "col_break_5",
   "date",
-  "amended_from",
+  "booking_status",
+  "package_type",
   "customer_section",
   "customer",
   "customer_name",
-  "column_break_cust",
+  "col_break_12",
   "customer_mobile",
-  "assignment_section",
+  "schedule_section",
+  "pickup_datetime",
+  "col_break_16",
+  "return_datetime",
+  "pickup_location_section",
+  "pickup_landmark",
+  "pickup_address",
+  "pickup_instructions",
+  "col_break_22",
+  "from_city",
+  "pickup_area",
+  "pickup_pincode",
+  "drop_location_section",
+  "drop_landmark",
+  "drop_address",
+  "drop_instructions",
+  "col_break_30",
+  "to_city",
+  "drop_area",
+  "drop_pincode",
+  "assignment_tab",
+  "fleet_section",
   "assigned_to",
   "car_model",
   "car_model_name",
-  "column_break_assign",
+  "col_break_39",
   "car",
   "car_number",
+  "crew_section",
   "driver",
   "driver_name",
   "driver_mobile",
-  "trip_type",
-  "package_type",
-  "trip_details_section",
-  "pickup_datetime",
-  "pickup_address",
-  "from_city",
-  "column_break_trip",
-  "return_datetime",
-  "drop_address",
-  "to_city",
-  "routing_estimates_section",
-  "pickup_latitude",
-  "pickup_longitude",
-  "drop_latitude",
-  "drop_longitude",
-  "from_place_id",
-  "to_place_id",
-  "office_to_pickup_km",
-  "column_break_routing",
-  "estimated_distance_km",
-  "estimated_duration_mins",
-  "fetch_route_data",
-  "route_polyline",
   "log_sheet_section",
   "start_km",
   "end_km",
-  "column_break_log",
+  "col_break_49",
   "total_km",
-  "pricing_section",
+  "fare_tab",
+  "rates_section",
   "min_hours",
   "min_km",
-  "column_break_rates",
+  "col_break_55",
   "per_hour_rate",
   "per_km_rate",
   "night_rate",
   "billing_section",
   "base_amount",
   "extra_km_charges",
+  "col_break_62",
   "extra_hour_charges",
   "night_charges",
-  "column_break_bill",
-  "calculate_expenses",
-  "expense_total",
-  "billable_expense_total",
-  "driver_expense_total",
   "tax_section",
   "tax_and_charges",
   "totals_section",
   "tax_total",
-  "grand_total"
+  "col_break_69",
+  "grand_total",
+  "settlement_tab",
+  "customer_money_section",
+  "customer_paid",
+  "customer_outstanding",
+  "col_break_75",
+  "settlement_status",
+  "vendor_rates_section",
+  "vendor_rate_source",
+  "override_vendor_rates",
+  "col_break_80",
+  "vendor_per_km_rate",
+  "vendor_per_hour_rate",
+  "col_break_83",
+  "vendor_night_charge",
+  "vendor_minimum_km_per_day",
+  "vendor_amounts_section",
+  "vendor_base_amount",
+  "vendor_night_charges",
+  "col_break_89",
+  "vendor_extra_km_charges",
+  "vendor_extra_hour_charges",
+  "col_break_92",
+  "vendor_payable",
+  "vendor_paid",
+  "vendor_outstanding",
+  "margin_section",
+  "margin_amount",
+  "margin_percent",
+  "routing_tab",
+  "estimates_section",
+  "estimated_distance_km",
+  "estimated_duration_mins",
+  "col_break_103",
+  "office_to_pickup_km",
+  "fetch_route_data",
+  "coords_section",
+  "pickup_latitude",
+  "pickup_longitude",
+  "from_place_id",
+  "col_break_110",
+  "drop_latitude",
+  "drop_longitude",
+  "to_place_id",
+  "polyline_section",
+  "route_polyline",
+  "meta_section",
+  "amended_from"
  ],
  "fields": [
   {
-   "fieldname": "details_section",
+   "fieldname": "trip_tab",
+   "fieldtype": "Tab Break",
+   "label": "Trip"
+  },
+  {
+   "fieldname": "booking_section",
    "fieldtype": "Section Break",
-   "label": "Details"
+   "label": "Booking"
   },
   {
    "default": "BK-.MM.-.YY.-.###",
@@ -91,13 +142,6 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "BK-.MM.-.YY.-.###"
-  },
-  {
-   "default": "Pending",
-   "fieldname": "booking_status",
-   "fieldtype": "Link",
-   "label": "Booking Status",
-   "options": "Status Master"
   },
   {
    "fieldname": "booking_type",
@@ -108,7 +152,14 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_bshv",
+   "depends_on": "eval:doc.booking_type=='Outstation'",
+   "fieldname": "trip_type",
+   "fieldtype": "Select",
+   "label": "Trip Type",
+   "options": "OneWay\nRoundTrip"
+  },
+  {
+   "fieldname": "col_break_5",
    "fieldtype": "Column Break"
   },
   {
@@ -118,13 +169,19 @@
    "label": "Date"
   },
   {
-   "fieldname": "amended_from",
+   "default": "Pending",
+   "fieldname": "booking_status",
    "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Bookings",
-   "print_hide": 1,
-   "read_only": 1
+   "label": "Booking Status",
+   "options": "Status Master"
+  },
+  {
+   "depends_on": "eval:doc.booking_type=='Local'",
+   "fieldname": "package_type",
+   "fieldtype": "Link",
+   "label": "Package Type",
+   "options": "City Ride Package",
+   "mandatory_depends_on": "eval:doc.booking_type=='Local'"
   },
   {
    "fieldname": "customer_section",
@@ -138,14 +195,14 @@
    "options": "Customer"
   },
   {
-   "fetch_from": "customer.name1",
+   "fetch_from": "customer.full_name",
    "fetch_if_empty": 1,
    "fieldname": "customer_name",
    "fieldtype": "Data",
    "label": "Customer Name"
   },
   {
-   "fieldname": "column_break_cust",
+   "fieldname": "col_break_12",
    "fieldtype": "Column Break"
   },
   {
@@ -156,9 +213,124 @@
    "label": "Customer Mobile"
   },
   {
-   "fieldname": "assignment_section",
+   "fieldname": "schedule_section",
    "fieldtype": "Section Break",
+   "label": "Schedule"
+  },
+  {
+   "fieldname": "pickup_datetime",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Pickup Date/Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "return_datetime",
+   "fieldtype": "Datetime",
+   "label": "Return Date/Time",
+   "mandatory_depends_on": "eval:doc.booking_type=='Outstation'"
+  },
+  {
+   "fieldname": "pickup_location_section",
+   "fieldtype": "Section Break",
+   "label": "Pickup"
+  },
+  {
+   "fieldname": "pickup_landmark",
+   "description": "Short recognisable name, e.g. the place the customer searched for.",
+   "fieldtype": "Data",
+   "label": "Pickup Landmark"
+  },
+  {
+   "fieldname": "pickup_address",
+   "fieldtype": "Small Text",
+   "label": "Pickup Address",
+   "description": "Full address as confirmed by the customer."
+  },
+  {
+   "fieldname": "pickup_instructions",
+   "description": "Gate, floor, tower or any note for the driver.",
+   "fieldtype": "Small Text",
+   "label": "Pickup Instructions"
+  },
+  {
+   "fieldname": "col_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.booking_type=='Outstation'",
+   "fieldname": "from_city",
+   "fieldtype": "Link",
+   "label": "From City",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "pickup_area",
+   "fieldtype": "Data",
+   "label": "Pickup Area"
+  },
+  {
+   "fieldname": "pickup_pincode",
+   "fieldtype": "Data",
+   "label": "Pickup Pincode"
+  },
+  {
+   "fieldname": "drop_location_section",
+   "fieldtype": "Section Break",
+   "label": "Drop"
+  },
+  {
+   "fieldname": "drop_landmark",
+   "description": "Short recognisable name, e.g. the place the customer searched for.",
+   "fieldtype": "Data",
+   "label": "Drop Landmark"
+  },
+  {
+   "fieldname": "drop_address",
+   "fieldtype": "Small Text",
+   "label": "Drop Address",
+   "mandatory_depends_on": "eval:doc.booking_type=='Outstation'",
+   "description": "Full address as confirmed by the customer."
+  },
+  {
+   "fieldname": "drop_instructions",
+   "fieldtype": "Small Text",
+   "label": "Drop Instructions"
+  },
+  {
+   "fieldname": "col_break_30",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.booking_type=='Outstation'",
+   "fieldname": "to_city",
+   "fieldtype": "Link",
+   "label": "To City",
+   "options": "City Master"
+  },
+  {
+   "fieldname": "drop_area",
+   "fieldtype": "Data",
+   "label": "Drop Area"
+  },
+  {
+   "fieldname": "drop_pincode",
+   "fieldtype": "Data",
+   "label": "Drop Pincode"
+  },
+  {
+   "fieldname": "assignment_tab",
+   "fieldtype": "Tab Break",
    "label": "Assignment"
+  },
+  {
+   "fieldname": "fleet_section",
+   "fieldtype": "Section Break",
+   "label": "Fleet"
   },
   {
    "fieldname": "assigned_to",
@@ -171,18 +343,18 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Car Model",
-   "options": "Car Modals",
+   "options": "Car Models",
    "reqd": 1
   },
   {
-   "fetch_from": "car_modal.modal_name",
+   "fetch_from": "car_model.model_name",
    "fieldname": "car_model_name",
    "fieldtype": "Data",
    "label": "Car Model Name",
    "read_only": 1
   },
   {
-   "fieldname": "column_break_assign",
+   "fieldname": "col_break_39",
    "fieldtype": "Column Break"
   },
   {
@@ -199,13 +371,18 @@
    "read_only": 1
   },
   {
+   "fieldname": "crew_section",
+   "fieldtype": "Section Break",
+   "label": "Driver"
+  },
+  {
    "fieldname": "driver",
    "fieldtype": "Link",
    "label": "Driver",
    "options": "Drivers"
   },
   {
-   "fetch_from": "driver.name1",
+   "fetch_from": "driver.full_name",
    "fieldname": "driver_name",
    "fieldtype": "Data",
    "label": "Driver Name",
@@ -219,136 +396,9 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.booking_type=='Outstation'",
-   "fieldname": "trip_type",
-   "fieldtype": "Select",
-   "label": "Trip Type",
-   "options": "OneWay\nRoundTrip"
-  },
-  {
-   "depends_on": "eval:doc.booking_type=='Local'",
-   "fieldname": "package_type",
-   "fieldtype": "Link",
-   "label": "Package Type",
-   "options": "City Ride Package"
-  },
-  {
-   "fieldname": "trip_details_section",
-   "fieldtype": "Section Break",
-   "label": "Trip Details"
-  },
-  {
-   "fieldname": "pickup_datetime",
-   "fieldtype": "Datetime",
-   "in_list_view": 1,
-   "label": "Pickup Date/Time"
-  },
-  {
-   "fieldname": "pickup_address",
-   "fieldtype": "Data",
-   "label": "Pickup Address"
-  },
-  {
-   "depends_on": "eval:doc.booking_type=='Outstation'",
-   "fieldname": "from_city",
-   "fieldtype": "Link",
-   "label": "From City",
-   "options": "City Master"
-  },
-  {
-   "fieldname": "column_break_trip",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "return_datetime",
-   "fieldtype": "Datetime",
-   "label": "Return Date/Time"
-  },
-  {
-   "fieldname": "drop_address",
-   "fieldtype": "Data",
-   "label": "Drop Address"
-  },
-  {
-   "depends_on": "eval:doc.booking_type=='Outstation'",
-   "fieldname": "to_city",
-   "fieldtype": "Link",
-   "label": "To City",
-   "options": "City Master"
-  },
-  {
-   "fieldname": "routing_estimates_section",
-   "fieldtype": "Section Break",
-   "label": "Routing & Estimates"
-  },
-  {
-   "fieldname": "pickup_latitude",
-   "fieldtype": "Data",
-   "label": "Pickup Latitude"
-  },
-  {
-   "fieldname": "pickup_longitude",
-   "fieldtype": "Data",
-   "label": "Pickup Longitude"
-  },
-  {
-   "fieldname": "drop_latitude",
-   "fieldtype": "Data",
-   "label": "Drop Latitude"
-  },
-  {
-   "fieldname": "drop_longitude",
-   "fieldtype": "Data",
-   "label": "Drop Longitude"
-  },
-  {
-   "fieldname": "from_place_id",
-   "fieldtype": "Data",
-   "label": "From Place ID"
-  },
-  {
-   "fieldname": "to_place_id",
-   "fieldtype": "Data",
-   "label": "To Place ID"
-  },
-  {
-   "description": "Distance from the fleet office to the customer pickup point. Used for dead-km pricing in outstation round trips.",
-   "fieldname": "office_to_pickup_km",
-   "fieldtype": "Float",
-   "label": "Office to Pickup (Dead KM)",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_routing",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "estimated_distance_km",
-   "fieldtype": "Float",
-   "label": "Estimated Distance (km)",
-   "read_only": 1
-  },
-  {
-   "fieldname": "estimated_duration_mins",
-   "fieldtype": "Int",
-   "label": "Estimated Duration (mins)",
-   "read_only": 1
-  },
-  {
-   "fieldname": "fetch_route_data",
-   "fieldtype": "Button",
-   "label": "Fetch Route Data"
-  },
-  {
-   "fieldname": "route_polyline",
-   "fieldtype": "Long Text",
-   "hidden": 1,
-   "label": "Route Polyline"
-  },
-  {
    "fieldname": "log_sheet_section",
    "fieldtype": "Section Break",
-   "label": "Log Sheet"
+   "label": "Trip Log"
   },
   {
    "fieldname": "start_km",
@@ -361,7 +411,7 @@
    "label": "End Km"
   },
   {
-   "fieldname": "column_break_log",
+   "fieldname": "col_break_49",
    "fieldtype": "Column Break"
   },
   {
@@ -371,36 +421,39 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.booking_type!='Fixed'",
-   "fieldname": "pricing_section",
+   "fieldname": "fare_tab",
+   "fieldtype": "Tab Break",
+   "label": "Fare"
+  },
+  {
+   "fieldname": "rates_section",
    "fieldtype": "Section Break",
-   "label": "Pricing & Rates"
+   "label": "Rates"
   },
   {
    "depends_on": "eval:doc.booking_type=='Local'",
-   "fetch_from": "car_modal.min_local_hour",
    "fieldname": "min_hours",
    "fieldtype": "Int",
    "label": "Min Hours"
   },
   {
-   "depends_on": "eval:doc.booking_type!='Fixed'",
+   "depends_on": "eval:doc.booking_type!='Package'",
    "fieldname": "min_km",
    "fieldtype": "Int",
    "label": "Min Km"
   },
   {
-   "fieldname": "column_break_rates",
+   "fieldname": "col_break_55",
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.booking_type!='Fixed'",
+   "depends_on": "eval:doc.booking_type!='Package'",
    "fieldname": "per_hour_rate",
    "fieldtype": "Currency",
    "label": "Per Hour Rate"
   },
   {
-   "depends_on": "eval:doc.booking_type!='Fixed'",
+   "depends_on": "eval:doc.booking_type!='Package'",
    "fieldname": "per_km_rate",
    "fieldtype": "Currency",
    "label": "Per Km Rate"
@@ -413,10 +466,10 @@
   {
    "fieldname": "billing_section",
    "fieldtype": "Section Break",
-   "label": "Billing"
+   "label": "Charges"
   },
   {
-   "depends_on": "eval:doc.booking_type!='Fixed'",
+   "depends_on": "eval:doc.booking_type!='Package'",
    "fieldname": "base_amount",
    "fieldtype": "Currency",
    "label": "Base Amount"
@@ -429,6 +482,10 @@
    "read_only": 1
   },
   {
+   "fieldname": "col_break_62",
+   "fieldtype": "Column Break"
+  },
+  {
    "depends_on": "eval:doc.booking_type=='Local'",
    "fieldname": "extra_hour_charges",
    "fieldtype": "Currency",
@@ -439,33 +496,6 @@
    "fieldname": "night_charges",
    "fieldtype": "Currency",
    "label": "Night Charges"
-  },
-  {
-   "fieldname": "column_break_bill",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "calculate_expenses",
-   "fieldtype": "Button",
-   "label": "Calculate Expenses"
-  },
-  {
-   "fieldname": "expense_total",
-   "fieldtype": "Currency",
-   "label": "Total Expenses",
-   "read_only": 1
-  },
-  {
-   "fieldname": "billable_expense_total",
-   "fieldtype": "Currency",
-   "label": "Billable Expenses",
-   "read_only": 1
-  },
-  {
-   "fieldname": "driver_expense_total",
-   "fieldtype": "Currency",
-   "label": "Driver Paid Expenses",
-   "read_only": 1
   },
   {
    "fieldname": "tax_section",
@@ -490,9 +520,289 @@
    "read_only": 1
   },
   {
+   "fieldname": "col_break_69",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "grand_total",
    "fieldtype": "Currency",
    "label": "Grand Total"
+  },
+  {
+   "fieldname": "settlement_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settlement"
+  },
+  {
+   "fieldname": "customer_money_section",
+   "fieldtype": "Section Break",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "customer_paid",
+   "fieldtype": "Currency",
+   "label": "Customer Paid",
+   "read_only": 1,
+   "description": "Sum of submitted Inbound Payments against this booking."
+  },
+  {
+   "fieldname": "customer_outstanding",
+   "fieldtype": "Currency",
+   "label": "Customer Outstanding",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_75",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "settlement_status",
+   "fieldtype": "Select",
+   "label": "Settlement Status",
+   "read_only": 1,
+   "options": "Unsettled\nPartially Settled\nSettled",
+   "default": "Unsettled"
+  },
+  {
+   "fieldname": "vendor_rates_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Rates"
+  },
+  {
+   "fieldname": "vendor_rate_source",
+   "fieldtype": "Select",
+   "label": "Vendor Rate Source",
+   "permlevel": 1,
+   "options": "Unset\nRate Card\nCommission\nManual",
+   "read_only": 1,
+   "description": "Which rule produced the rates below."
+  },
+  {
+   "fieldname": "override_vendor_rates",
+   "fieldtype": "Check",
+   "label": "Override Vendor Rates",
+   "permlevel": 1,
+   "default": "0",
+   "description": "Enter the rates by hand instead of pulling them from the vendor's rate card."
+  },
+  {
+   "fieldname": "col_break_80",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_per_km_rate",
+   "fieldtype": "Currency",
+   "label": "Vendor Per Km Rate",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "vendor_per_hour_rate",
+   "fieldtype": "Currency",
+   "label": "Vendor Per Hour Rate",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "col_break_83",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_night_charge",
+   "fieldtype": "Currency",
+   "label": "Vendor Night Charge",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "vendor_minimum_km_per_day",
+   "fieldtype": "Float",
+   "label": "Vendor Minimum Km Per Day",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "vendor_amounts_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Amounts"
+  },
+  {
+   "fieldname": "vendor_base_amount",
+   "fieldtype": "Currency",
+   "label": "Vendor Base Amount",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "vendor_night_charges",
+   "fieldtype": "Currency",
+   "label": "Vendor Night Charges",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_89",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_extra_km_charges",
+   "fieldtype": "Currency",
+   "label": "Vendor Extra Km Charges",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "vendor_extra_hour_charges",
+   "fieldtype": "Currency",
+   "label": "Vendor Extra Hour Charges",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_92",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vendor_payable",
+   "fieldtype": "Currency",
+   "label": "Vendor Payable",
+   "permlevel": 1,
+   "read_only": 1,
+   "description": "Total pre-tax cost owed to the vendor for this booking."
+  },
+  {
+   "fieldname": "vendor_paid",
+   "fieldtype": "Currency",
+   "label": "Vendor Paid",
+   "permlevel": 1,
+   "read_only": 1,
+   "description": "Sum of submitted Outbound Payments against this booking."
+  },
+  {
+   "fieldname": "vendor_outstanding",
+   "fieldtype": "Currency",
+   "label": "Vendor Outstanding",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "margin_section",
+   "fieldtype": "Section Break",
+   "label": "Margin"
+  },
+  {
+   "fieldname": "margin_amount",
+   "fieldtype": "Currency",
+   "label": "Margin",
+   "permlevel": 1,
+   "read_only": 1,
+   "description": "Measured against the customer's PRE-TAX subtotal (base + night + extras), so GST never inflates the apparent margin."
+  },
+  {
+   "fieldname": "margin_percent",
+   "fieldtype": "Percent",
+   "label": "Margin %",
+   "permlevel": 1,
+   "read_only": 1,
+   "description": "Measured against the customer's PRE-TAX subtotal (base + night + extras), so GST never inflates the apparent margin."
+  },
+  {
+   "fieldname": "routing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Routing"
+  },
+  {
+   "fieldname": "estimates_section",
+   "fieldtype": "Section Break",
+   "label": "Estimates"
+  },
+  {
+   "fieldname": "estimated_distance_km",
+   "fieldtype": "Float",
+   "label": "Estimated Distance (km)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "estimated_duration_mins",
+   "fieldtype": "Int",
+   "label": "Estimated Duration (mins)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_103",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Distance from the fleet office to the customer pickup point. Used for dead-km pricing in outstation round trips.",
+   "fieldname": "office_to_pickup_km",
+   "fieldtype": "Float",
+   "label": "Office to Pickup (Dead KM)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fetch_route_data",
+   "fieldtype": "Button",
+   "label": "Fetch Route Data"
+  },
+  {
+   "fieldname": "coords_section",
+   "fieldtype": "Section Break",
+   "label": "Coordinates"
+  },
+  {
+   "fieldname": "pickup_latitude",
+   "fieldtype": "Data",
+   "label": "Pickup Latitude"
+  },
+  {
+   "fieldname": "pickup_longitude",
+   "fieldtype": "Data",
+   "label": "Pickup Longitude"
+  },
+  {
+   "fieldname": "from_place_id",
+   "fieldtype": "Data",
+   "label": "From Place ID"
+  },
+  {
+   "fieldname": "col_break_110",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "drop_latitude",
+   "fieldtype": "Data",
+   "label": "Drop Latitude"
+  },
+  {
+   "fieldname": "drop_longitude",
+   "fieldtype": "Data",
+   "label": "Drop Longitude"
+  },
+  {
+   "fieldname": "to_place_id",
+   "fieldtype": "Data",
+   "label": "To Place ID"
+  },
+  {
+   "fieldname": "polyline_section",
+   "fieldtype": "Section Break",
+   "label": "Route"
+  },
+  {
+   "fieldname": "route_polyline",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Route Polyline"
+  },
+  {
+   "fieldname": "meta_section",
+   "fieldtype": "Section Break",
+   "label": "Meta"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Bookings",
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -536,6 +846,12 @@
   {
    "read": 1,
    "role": "Customer"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
